@@ -39,24 +39,17 @@ module RunCases
 
 using Iterators
 
-import Base.get
-import Base.start
-import Base.done
-import Base.next
-import Base.length
-
+import Base: get, start, done, next, length
 export Case, Cases, generate_cases, add_field!, get, set!, savecase, loadcase
 
 type Case
   data::Dict{String,Any}
 end
-
 Case() = Case(Dict{String, Any}())
 
 type Cases
   data::Vector{Case}
 end
-
 Cases() = Cases(Case[])
 Cases(case::Case) = Cases([case])
 
@@ -65,33 +58,26 @@ function generate_cases(keyvals::(String, Vector)...)
   #returns Cases
   #FIXME(rlee): This method of using vectors of the parameters uses a lot of space.  Switch it over to storing indices
   # and making each case on the fly as it is being iterated over
-
   kv_vec = map(kv_expand, keyvals)
-
   return Cases([make_case(kvs...) for kvs in product(kv_vec...)])
 end
 
 function add_field!(cases::Cases, field::String, value::Any)
-
   map(case -> set!(case, field, value), cases)
 end
 
 function add_field!{T <: String}(cases::Cases, field::String, getval::Function, lookups::Vector{T})
-
   map(case -> add_field!(case, field, getval, lookups), cases)
 end
 
 function add_field!{T <: String}(case::Case, field::String, getval::Function, lookups::Vector{T})
   # generate value of field dynamically by looking up keys already in the case, then calling callback gettag()
-
   values = map(l -> get(case, l), lookups)
   set!(case, field, getval(values...))
-
   return case
 end
 
 function get(case::Case, key::String)
-
   haskey(case.data, key) ? case.data[key] : nothing
 end
 
@@ -100,45 +86,35 @@ set!(case::Case, key::String, value) = case.data[key] = value
 function kv_expand(kV::(String, Vector))
   # expand (k, V) to a vector of where each element is (k, V_i)
   k, V = kV
-
   return convert(Array{(String,Any)}, map(x -> (k, x), V))
 end
 
 function make_case{S <: String}(kvs::(S, Any)...)
   # take all the (k, V_i) and populate a dict, then feed into Case
   d = Dict{String, Any}()
-
   for (k, v) in kvs
     d[k] = v
   end
-
   return Case(d)
 end
 
 function savecase(case::Case, filename::String="case.txt")
   f = open(filename, "w")
-
   for (k, v) in case.data
     println(f, "$k = $v")
   end
-
   close(f)
-
   return filename
 end
 
 function loadcase(filename=String="case.txt")
   f = open(filename)
-
   case = Case()
-
   for line in eachline(f)
     k, v = split(line, "=")
     case.data[strip(k)] = strip(v)
   end
-
   close(f)
-
   return case
 end
 
