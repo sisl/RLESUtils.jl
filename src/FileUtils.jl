@@ -32,24 +32,19 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module FileUtils
 
-include("RunCases.jl")
-export RunCases
+export readdir_ext
 
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-include("StringUtils.jl")
-export StringUtils
-
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
+function readdir_ext(ext::String, dir::String=".")
+  if ext[1] != '.'
+    ext = string(".", ext) #prepend the . if it's not already there
+  end
+  files = readdir(dir)
+  files = convert(Vector{ASCIIString}, files)
+  filter!(f -> splitext(f)[2] == ext, files)
+  map!(f -> joinpath(dir, f), files)
+  return files
+end
 
 end #module

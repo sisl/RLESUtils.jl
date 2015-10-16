@@ -32,24 +32,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module LookupCallbacks
 
-include("RunCases.jl")
-export RunCases
+export LookupCallback
 
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-include("StringUtils.jl")
-export StringUtils
-
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
+type LookupCallback
+  lookups::Vector{ASCIIString}
+  callback::Function
+end
+LookupCallback(lookups::Vector{ASCIIString}) = LookupCallback(lookups, identity)
+LookupCallback(lookup::ASCIIString, callback::Function=identity) = LookupCallback([lookup], callback)
 
 end #module

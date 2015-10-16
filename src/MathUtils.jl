@@ -32,24 +32,23 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module MathUtils
 
-include("RunCases.jl")
-export RunCases
+import Base.extrema
 
-include("Obj2Dict.jl")
-export Obj2Dict
+export extrema, scale01
 
-include("FileUtils.jl")
-export FileUtils
+function extrema{T}(A::Array{T,2}, dim)
+  mapslices(A, dim) do x
+    extrema(x)
+  end
+end
 
-include("StringUtils.jl")
-export StringUtils
+function scale01(x::Real, xmin::Real, xmax::Real)
+  x = min(xmax, max(x, xmin)) #capped to be within [xmin,xmax]
+  return (x - xmin) / (xmax - xmin)
+end
 
-include("LookupCallbacks.jl")
-export LookupCallbacks
 
-include("MathUtils.jl")
-export MathUtils
 
 end #module

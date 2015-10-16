@@ -40,9 +40,7 @@ type MySubType
   p::Int64
   q::String
 end
-
 MySubType() = MySubType(0,"0")
-
 ==(x::MySubType, y::MySubType) = x.p == y.p && x.q == y.q
 
 type MyType
@@ -50,9 +48,7 @@ type MyType
   b::String
   c::MySubType
 end
-
 MyType() = MyType(0,"0",MySubType())
-
 ==(x::MyType, y::MyType) = x.a == y.a && x.b == y.b && x.c == y.c
 
 type MyTypeArray
@@ -60,73 +56,54 @@ type MyTypeArray
   b::String
   c::Array{MySubType}
 end
-
 MyTypeArray() = MyTypeArray(0,"0",[MySubType() for i=1:2])
-
 ==(x::MyTypeArray, y::MyTypeArray) = x.a == y.a && x.b == y.b && x.c == y.c
 
 function test1(; verbose::Bool = false)
   # Test custom subtypes
-
   x = MyType(1,"2",MySubType(1,"2"))
-
   verbose ? println("x = $x") : nothing
 
   d = Obj2Dict.to_dict(x)
-
   verbose ? println("d = $d") : nothing
 
   y = Obj2Dict.to_obj(d)
-
   verbose ? println("y = $y") : nothing
 
   @test x == y
-
-  return x, d, y
+  return (x, d, y)
 end
 
 function test2(; verbose::Bool = false)
   # Test arrays
-
   x = [MyType(i,"$j",MySubType(i,"$j")) for i = 1:2, j=1:2]
-
   verbose ? println("x = $x") : nothing
 
   d = Obj2Dict.to_dict(x)
-
   verbose ? println("d = $d") : nothing
 
   y = Obj2Dict.to_obj(d)
-
   verbose ? println("y = $y") : nothing
 
   @test x == y
-
-  return x, d, y
+  return (x, d, y)
 end
 
 function test3(; verbose::Bool = false)
   # Test array as member
-
   x = MyTypeArray(1,"2", [MySubType(i,"$j") for i = 1:2, j=1:2])
-
   verbose ? println("x = $x") : nothing
 
   d = Obj2Dict.to_dict(x)
-
   verbose ? println("d = $d") : nothing
 
   y = Obj2Dict.to_obj(d)
-
   verbose ? println("y = $y") : nothing
 
   @test x == y
-
-  return x, d, y
+  return (x, d, y)
 end
 
 test1()
-
 test2()
-
 test3()
