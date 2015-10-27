@@ -36,7 +36,7 @@ module MathUtils
 
 import Base.extrema
 
-export extrema, scale01
+export extrema, scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180
 
 function extrema{T}(A::Array{T,2}, dim)
   mapslices(A, dim) do x
@@ -49,6 +49,12 @@ function scale01(x::Real, xmin::Real, xmax::Real)
   return (x - xmin) / (xmax - xmin)
 end
 
-
+#mods x to the range [-b, b]
+function to_plusminus_b(x::FloatingPoint, b::FloatingPoint)
+  z = mod(x, 2 * b)
+  return (z > b) ? (z - 2 * b) : z
+end
+to_plusminus_pi(x::FloatingPoint) = to_plusminus_b(x, float(pi))
+to_plusminus_180(x::FloatingPoint) = to_plusminus_b(x, 180.0)
 
 end #module

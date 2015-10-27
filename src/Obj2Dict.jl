@@ -74,7 +74,7 @@ function set_fields!(x, d::ObjDict; verbose::Bool = true)
       x.(sym) = to_obj(d[string(sym)])
 
     elseif verbose
-      println("Warning: Obj2Dict::set_fields!: ($sym) not found!")
+      warn("Obj2Dict::set_fields!: ($sym) not found!")
     end
   end
 

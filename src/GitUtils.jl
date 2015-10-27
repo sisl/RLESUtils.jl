@@ -32,27 +32,23 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module GitUtils
 
-include("RunCases.jl")
-export RunCases
+export get_SHA
 
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-include("StringUtils.jl")
-export StringUtils
-
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
+function get_SHA(dir::String="./")
+  current_dir = pwd()
+  sha = ""
+  try
+    cd(dir)
+    sha = readall(`git rev-parse HEAD`)
+    sha = replace(sha, "\n", "") #remove trailing newline
+  catch
+    sha = ""
+  finally #restore current directory
+    cd(current_dir)
+  end
+  return sha
+end
 
 end #module
