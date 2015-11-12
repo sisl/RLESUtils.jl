@@ -43,14 +43,12 @@ typealias ObjDict Dict{String, Any}
 typealias Primitive Union(Dict, Integer, Real, String, Symbol, Nothing)
 
 function to_dict(x)
-
   d = ObjDict()
   d["type"] = string(typeof(x))
   d["data"] = ObjDict()
   for sym in names(x)
     d["data"][string(sym)] = to_dict(x.(sym))
   end
-
   return d
 end
 
@@ -58,7 +56,6 @@ function to_dict(x::Primitive)
   d = ObjDict()
   d["type"] = string(typeof(x))
   d["data"] = x
-
   return d
 end
 
@@ -67,33 +64,28 @@ function to_dict(x::Array)
   map(to_dict, x)
 end
 
-function set_fields!(x, d::ObjDict; verbose::Bool = true)
-
+function set_fields!(x, d::ObjDict; verbose::Bool=true)
   for sym in names(x)
     if haskey(d, string(sym))
       x.(sym) = to_obj(d[string(sym)])
-
     elseif verbose
       warn("Obj2Dict::set_fields!: ($sym) not found!")
     end
   end
-
   return x
 end
 
+#TODO: Make these more elegant.
+#Don't access through Main and don't assume empty constructor exists.
 function to_obj(d::ObjDict)
-
-  if haskey(d,"type") && haskey(d,"data")
-
-    T = Main.(symbol(d["type"]))       #access through Main
-
+  if haskey(d, "type") && haskey(d, "data")
+    T = Main.(symbol(d["type"]))       #access through Main. TODO: remove this
     if issubtype(T, Primitive)
       x = convert(T, d["data"])
     else
-      x = T()  #assume an empty constructor exists
+      x = T()  #assume an empty constructor exists.
       set_fields!(x, d["data"])
     end
-
     return x::T
   else
     return d
@@ -103,7 +95,6 @@ end
 
 function to_obj(d::Array)
   x = map(to_obj, d) #call to_obj on each element
-
   T = promote_type(map(typeof, x)...) #determine the lowest common type
   return convert(Array{T}, x)
 end
@@ -112,6 +103,7 @@ to_obj(x) = x
 
 #workaround for JSON limitation that cannot recover 2D arrays.  They get recovered
 #to vector of vector
-convert{T<:Any}(::Type{Array{T, 2}}, x::Array{Array{T, 1}, 1}) = hcat(x...)
+convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{T,1},1}) = hcat(x...)
+convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{None,1},1}) = Array(T, 0, 0)
 
 end #module

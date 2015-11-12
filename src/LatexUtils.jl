@@ -32,30 +32,18 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module LatexUtils
 
-include("RunCases.jl")
-export RunCases
+export escape_latex
 
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-include("StringUtils.jl")
-export StringUtils
-
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
+function escape_latex(s::String)
+  s = replace(s, "\\", "\\\\")
+  s = replace(s, "_", "\\_")
+  s = replace(s, "|", "\$|\$")
+  s = replace(s, "<", "\$<\$")
+  s = replace(s, ">", "\$>\$")
+  s = replace(s, "&", "\\&")
+  return s
+end
 
 end #module
