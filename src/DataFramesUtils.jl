@@ -32,39 +32,12 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module DataFramesUtils
 
-include("RunCases.jl")
-export RunCases
+export get_col_types
 
-include("Obj2Dict.jl")
-export Obj2Dict
+using DataFrames
 
-include("FileUtils.jl")
-export FileUtils
+get_col_types(D::DataFrame) = [typeof(D.columns[i]).parameters[1] for i=1:length(D.columns)]
 
-include("StringUtils.jl")
-export StringUtils
-
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("DataFramesUtils.jl")
-export DataFramesUtils
-
-include("TypeUtils.jl")
-export TypeUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-end #module
+end

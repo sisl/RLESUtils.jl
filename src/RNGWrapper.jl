@@ -32,39 +32,41 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module RNGWrapper
 
-include("RunCases.jl")
-export RunCases
+export RSG, set_global, next, next!, set_from_seed!, hash, ==, isequal, length
 
-include("Obj2Dict.jl")
-export Obj2Dict
+using Iterators
+import Base: next, hash, ==, isequal, length
 
-include("FileUtils.jl")
-export FileUtils
+type RSG #Seed generator
+  state::Vector{Uint32}
+end
+function RSG(len::Int64=1, seed::Int64=0)
+  return seed_to_state_itr(len, seed) |> collect |> RSG
+end
 
-include("StringUtils.jl")
-export StringUtils
+set_from_seed!(rsg::RSG, len::Int64, seed::Int64) = copy!(rsg.state, seed_to_state_itr(len, seed))
+seed_to_state_itr(len::Int64, seed::Int64) = take(iterate(hash_uint32, seed), len)
 
-include("LookupCallbacks.jl")
-export LookupCallbacks
+set_global(rsg::RSG) = set_gv_rng_state(rsg.state)
+function next!(rsg::RSG)
+  map!(hash_uint32, rsg.state)
+  return rsg
+end
+function next(rsg0::RSG)
+  rsg1 = deepcopy(rsg0)
+  next!(rsg1)
+  return rsg1
+end
 
-include("MathUtils.jl")
-export MathUtils
+hash_uint32(x) = uint32(hash(x))
+set_gv_rng_state(i::Uint32) = set_gv_rng_state([i])
+set_gv_rng_state(a::Vector{Uint32}) = Base.dSFMT.dsfmt_gv_init_by_array(a) #not exported, so probably not stable
 
-include("GitUtils.jl")
-export GitUtils
+length(rsg::RSG) = length(rsg.state)
+hash(rsg::RSG) = hash(rsg.state)
+==(rsg1::RSG, rsg2::RSG) = rsg1.state == rsg2.state
+isequal(rsg1::RSG, rsg2::RSG) = rsg1 == rsg2
 
-include("LatexUtils.jl")
-export LatexUtils
-
-include("DataFramesUtils.jl")
-export DataFramesUtils
-
-include("TypeUtils.jl")
-export TypeUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-end #module
+end

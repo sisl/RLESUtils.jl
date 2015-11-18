@@ -32,39 +32,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module TypeUtils
 
-include("RunCases.jl")
-export RunCases
+export get_vec_type
 
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-include("StringUtils.jl")
-export StringUtils
-
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("DataFramesUtils.jl")
-export DataFramesUtils
-
-include("TypeUtils.jl")
-export TypeUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
+get_vec_type{T}(x::Vector{T}) = T
 
 end #module
