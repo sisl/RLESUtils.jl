@@ -36,8 +36,10 @@ module DataFramesUtils
 
 export get_col_types
 
-using DataFrames
-
-get_col_types(D::DataFrame) = [typeof(D.columns[i]).parameters[1] for i=1:length(D.columns)]
-
+function get_col_types(D)
+  #D must be a dataframe, however, including the DataFrames package is expensive...
+  @assert string(typeof(D)) == "DataFrame"
+  return [typeof(D.columns[i]).parameters[1] for i=1:length(D.columns)]
 end
+
+end #module
