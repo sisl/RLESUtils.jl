@@ -36,7 +36,7 @@ module FileUtils
 
 export readdir_ext
 
-function readdir_ext(ext::String, dir::String=".")
+function readdir_ext(ext::AbstractString, dir::AbstractString=".")
   if ext[1] != '.'
     ext = string(".", ext) #prepend the . if it's not already there
   end

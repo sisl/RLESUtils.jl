@@ -50,11 +50,11 @@ function scale01(x::Real, xmin::Real, xmax::Real)
 end
 
 #mods x to the range [-b, b]
-function to_plusminus_b(x::FloatingPoint, b::FloatingPoint)
+function to_plusminus_b(x::AbstractFloat, b::AbstractFloat)
   z = mod(x, 2 * b)
   return (z > b) ? (z - 2 * b) : z
 end
-to_plusminus_pi(x::FloatingPoint) = to_plusminus_b(x, float(pi))
-to_plusminus_180(x::FloatingPoint) = to_plusminus_b(x, 180.0)
+to_plusminus_pi(x::AbstractFloat) = to_plusminus_b(x, float(pi))
+to_plusminus_180(x::AbstractFloat) = to_plusminus_b(x, 180.0)
 
 end #module
