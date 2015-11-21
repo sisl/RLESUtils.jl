@@ -36,7 +36,7 @@ module LatexUtils
 
 export escape_latex
 
-function escape_latex(s::String)
+function escape_latex(s::AbstractString)
   s = replace(s, "\\", "\\\\")
   s = replace(s, "_", "\\_")
   s = replace(s, "|", "\$|\$")

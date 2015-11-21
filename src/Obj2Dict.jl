@@ -43,8 +43,8 @@ import Base.convert
 using JSON
 using ..StringUtils
 
-typealias ObjDict Dict{String, Any}
-typealias Primitive Union(Integer, Real, String, Symbol, Nothing)
+typealias ObjDict Dict{ASCIIString, Any}
+typealias Primitive Union{Integer, Real, AbstractString, Symbol, Void}
 
 function to_dict(x)
   d = ObjDict()
@@ -151,7 +151,7 @@ function to_datatype(T, d::ObjDict)
   return x
 end
 
-function save_obj(file::String, x)
+function save_obj(file::AbstractString, x)
   f = open(file, "w")
   d = to_dict(x)
   JSON.print(f, d)
@@ -159,7 +159,7 @@ function save_obj(file::String, x)
   return file
 end
 
-function load_obj(file::String)
+function load_obj(file::AbstractString)
   f = open(file, "r")
   d = JSON.parse(f)
   x = Obj2Dict.to_obj(d)
@@ -170,7 +170,7 @@ end
 #workaround for JSON limitation that cannot recover 2D arrays.  They get recovered
 #to vector of vector
 convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{T,1},1}) = hcat(x...)
-convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{None,1},1}) = Array(T, 0, 0)
+convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{Union{},1},1}) = Array(T, 0, 0)
 
 #these will be deprecated in 0.4
 convert(::Type{Int64}, x::ASCIIString) = int64(x)

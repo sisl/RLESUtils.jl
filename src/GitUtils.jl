@@ -36,7 +36,7 @@ module GitUtils
 
 export get_SHA
 
-function get_SHA(dir::String="./")
+function get_SHA(dir::AbstractString="./")
   current_dir = pwd()
   sha = ""
   try

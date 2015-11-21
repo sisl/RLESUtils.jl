@@ -41,7 +41,7 @@ export hamming
 const TRUES = ASCIIString["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
 const FALSES = ASCIIString["FALSE", "F", "-1", "0", "0.0", "NEG", "NEGATIVE"]
 
-function hamming(s1::String, s2::String)
+function hamming(s1::AbstractString, s2::AbstractString)
   x = collect(s1)
   y = collect(s2)
   minlen = min(length(x), length(y))
@@ -49,7 +49,7 @@ function hamming(s1::String, s2::String)
   return sum(x[1:minlen] .!= y[1:minlen]) + len_diff
 end
 
-function bool(s::String)
+function bool(s::AbstractString)
   s = uppercase(s)
   if in(s, TRUES)
     return true

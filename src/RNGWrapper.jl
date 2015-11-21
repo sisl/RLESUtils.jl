@@ -40,7 +40,7 @@ using Iterators
 import Base: next, hash, ==, isequal, length
 
 type RSG #Seed generator
-  state::Vector{Uint32}
+  state::Vector{UInt32}
 end
 function RSG(len::Int64=1, seed::Int64=0)
   return seed_to_state_itr(len, seed) |> collect |> RSG
@@ -60,9 +60,9 @@ function next(rsg0::RSG)
 end
 
 set_global(rsg::RSG) = set_gv_rng_state(rsg.state)
-set_gv_rng_state(i::Uint32) = set_gv_rng_state([i])
-set_gv_rng_state(a::Vector{Uint32}) = srand(a) #more stable than Base.dSFMT
-#set_gv_rng_state(a::Vector{Uint32}) = Base.dSFMT.dsfmt_gv_init_by_array(a) #not exported, so probably not stable
+set_gv_rng_state(i::UInt32) = set_gv_rng_state([i])
+set_gv_rng_state(a::Vector{UInt32}) = srand(a) #more stable than Base.dSFMT
+#set_gv_rng_state(a::Vector{UInt32}) = Base.dSFMT.dsfmt_gv_init_by_array(a) #not exported, so probably not stable
 hash_uint32(x) = uint32(hash(x))
 
 length(rsg::RSG) = length(rsg.state)
