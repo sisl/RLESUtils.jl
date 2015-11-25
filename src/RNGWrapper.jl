@@ -63,7 +63,7 @@ set_global(rsg::RSG) = set_gv_rng_state(rsg.state)
 set_gv_rng_state(i::UInt32) = set_gv_rng_state([i])
 set_gv_rng_state(a::Vector{UInt32}) = srand(a) #more stable than Base.dSFMT
 #set_gv_rng_state(a::Vector{UInt32}) = Base.dSFMT.dsfmt_gv_init_by_array(a) #not exported, so probably not stable
-hash_uint32(x) = uint32(hash(x))
+hash_uint32(x) = UInt32(hash(x) & 0x00000000FFFFFFFF) #take lower 32-bits
 
 length(rsg::RSG) = length(rsg.state)
 hash(rsg::RSG) = hash(rsg.state)
