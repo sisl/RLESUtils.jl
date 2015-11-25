@@ -61,9 +61,6 @@ export LatexUtils
 include("DataFramesUtils.jl")
 export DataFramesUtils
 
-include("TypeUtils.jl")
-export TypeUtils
-
 include("RNGWrapper.jl")
 export RNGWrapper
 
