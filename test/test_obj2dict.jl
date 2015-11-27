@@ -38,14 +38,14 @@ using Base.Test
 
 type MySubType
   p::Int64
-  q::String
+  q::ASCIIString
 end
 MySubType() = MySubType(0,"0")
 ==(x::MySubType, y::MySubType) = x.p == y.p && x.q == y.q
 
 type MyType
   a::Int64
-  b::String
+  b::ASCIIString
   c::MySubType
 end
 MyType() = MyType(0,"0",MySubType())
@@ -53,7 +53,7 @@ MyType() = MyType(0,"0",MySubType())
 
 type MyTypeArray
   a::Int64
-  b::String
+  b::ASCIIString
   c::Array{MySubType}
 end
 MyTypeArray() = MyTypeArray(0,"0",[MySubType() for i=1:2])

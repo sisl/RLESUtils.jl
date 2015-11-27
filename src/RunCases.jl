@@ -37,10 +37,13 @@
 
 module RunCases
 
-using Iterators
+export Case, Cases, generate_cases, add_field!, get, set!, savecase, loadcase
+export get, start, done, next, length
 
 import Base: get, start, done, next, length
-export Case, Cases, generate_cases, add_field!, get, set!, savecase, loadcase
+
+using Iterators
+using ..ConvertUtils #parent of RunCases
 
 type Case
   data::Dict{ASCIIString,Any}
@@ -53,7 +56,7 @@ end
 Cases() = Cases(Case[])
 Cases(case::Case) = Cases([case])
 
-function generate_cases(keyvals::Tuple{ASCIIString, Vector}...)
+function generate_cases{T<:AbstractVector}(keyvals::Pair{ASCIIString, T}...)
   #generates a vector of runcases based on cartesian product of the keyvals together
   #returns Cases
   #FIXME(rlee): This method of using vectors of the parameters uses a lot of space.  Switch it over to storing indices
@@ -66,11 +69,11 @@ function add_field!(cases::Cases, field::AbstractString, value::Any)
   map(case -> set!(case, field, value), cases)
 end
 
-function add_field!{T <: AbstractString}(cases::Cases, field::AbstractString, getval::Function, lookups::Vector{T})
+function add_field!{T<:AbstractString}(cases::Cases, field::AbstractString, getval::Function, lookups::Vector{T})
   map(case -> add_field!(case, field, getval, lookups), cases)
 end
 
-function add_field!{T <: AbstractString}(case::Case, field::AbstractString, getval::Function, lookups::Vector{T})
+function add_field!{T<:AbstractString}(case::Case, field::AbstractString, getval::Function, lookups::Vector{T})
   # generate value of field dynamically by looking up keys already in the case, then calling callback gettag()
   values = map(l -> get(case, l), lookups)
   set!(case, field, getval(values...))
@@ -83,15 +86,16 @@ end
 
 set!(case::Case, key::AbstractString, value) = case.data[key] = value
 
-function kv_expand(kV::Tuple{ASCIIString, Vector})
+function kv_expand{T<:AbstractVector}(kV::Pair{ASCIIString, T})
   # expand (k, V) to a vector of where each element is (k, V_i)
   k, V = kV
-  return convert(Array{(ASCIIString,Any)}, map(x -> (k, x), V))
+  tmp = map(v -> (k, v), V)
+  return convert(Vector{Tuple{ASCIIString,Any}}, tmp)
 end
 
 function make_case{S <: AbstractString}(kvs::Tuple{S, Any}...)
   # take all the (k, V_i) and populate a dict, then feed into Case
-    d = Dict{ASCIIString, Any}()
+  d = Dict{ASCIIString, Any}()
   for (k, v) in kvs
     d[k] = v
   end
