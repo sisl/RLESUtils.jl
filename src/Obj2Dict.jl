@@ -172,7 +172,7 @@ convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{T,1},1}) = hcat(x...)
 convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{Union{},1},1}) = Array(T, 0, 0)
 
 #these will be deprecated in 0.4
-convert(::Type{Int64}, x::ASCIIString) = int64(x)
+convert(::Type{Int64}, x::ASCIIString) = Int64(x)
 convert(::Type{Float64}, x::ASCIIString) = float64(x)
 
 end #module

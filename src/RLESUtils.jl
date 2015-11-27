@@ -34,6 +34,9 @@
 
 module RLESUtils
 
+include("ConvertUtils.jl")
+export ConvertUtils
+
 include("RunCases.jl")
 export RunCases
 
