@@ -37,14 +37,14 @@ module RLESUtils
 include("RunCases.jl")
 export RunCases
 
+include("StringUtils.jl")
+export StringUtils
+
 include("Obj2Dict.jl")
 export Obj2Dict
 
 include("FileUtils.jl")
 export FileUtils
-
-include("StringUtils.jl")
-export StringUtils
 
 include("LookupCallbacks.jl")
 export LookupCallbacks

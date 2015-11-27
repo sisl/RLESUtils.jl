@@ -41,6 +41,7 @@ module Obj2Dict
 
 import Base.convert
 using JSON
+using ..StringUtils
 
 typealias ObjDict Dict{String, Any}
 typealias Primitive Union(Integer, Real, String, Symbol, Nothing)

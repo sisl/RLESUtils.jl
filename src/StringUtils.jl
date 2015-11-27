@@ -34,9 +34,9 @@
 
 module StringUtils
 
-import Base.bool
+import Base: bool, convert
 
-export hamming, TRUES, FALSES
+export hamming
 
 const TRUES = ASCIIString["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
 const FALSES = ASCIIString["FALSE", "F", "-1", "0", "0.0", "NEG", "NEGATIVE"]
@@ -50,14 +50,16 @@ function hamming(s1::String, s2::String)
 end
 
 function bool(s::String)
-  s_ = uppercase(s)
-  if in(s_, TRUES)
+  s = uppercase(s)
+  if in(s, TRUES)
     return true
-  elseif in(s_, FALSES)
+  elseif in(s, FALSES)
     return false
   else
     throw(InexactError())
   end
 end
+
+convert(::Type{Bool}, s::String) = bool(s)
 
 end #module

@@ -39,7 +39,7 @@ export get_col_types
 function get_col_types(D)
   #D must be a dataframe, however, including the DataFrames package is expensive...
   @assert string(typeof(D)) == "DataFrame"
-  return [typeof(D.columns[i]).parameters[1] for i=1:length(D.columns)]
+  return map(eltype, D.columns)
 end
 
 end #module
