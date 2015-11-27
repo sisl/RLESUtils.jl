@@ -60,6 +60,6 @@ function bool(s::AbstractString)
   end
 end
 
-convert(::Type{Bool}, s::String) = bool(s)
+convert(::Type{Bool}, s::AbstractString) = bool(s)
 
 end #module

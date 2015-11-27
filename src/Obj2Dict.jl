@@ -43,14 +43,14 @@ import Base.convert
 using JSON
 using ..StringUtils
 
-typealias ObjDict Dict{ASCIIString, Any}
+typealias ObjDict Dict{AbstractString, Any}
 typealias Primitive Union{Integer, Real, AbstractString, Symbol, Void}
 
 function to_dict(x)
   d = ObjDict()
   d["type"] = string(typeof(x))
   d["data"] = ObjDict()
-  for sym in names(x)
+  for sym in fieldnames(x)
     d["data"][string(sym)] = to_dict(x.(sym))
   end
   return d
@@ -86,7 +86,7 @@ function to_dict(x::Expr)
 end
 
 function set_fields!(x, d::ObjDict; verbose::Bool=true)
-  for sym in names(x)
+  for sym in fieldnames(x)
     if haskey(d["data"], string(sym))
       x.(sym) = to_obj(d["data"][string(sym)])
     elseif verbose
@@ -141,7 +141,7 @@ function to_datatype(T, d::ObjDict)
   catch
     try
       #try struct-style default constructor
-      fields = map(field -> to_obj(d["data"][string(field)]), names(T))
+      fields = map(field -> to_obj(d["data"][string(field)]), fieldnames(T))
       x = T(fields...)
     catch e
       println("exception $e")

@@ -37,8 +37,7 @@ module DataFramesUtils
 export get_col_types
 
 function get_col_types(D)
-  #D must be a dataframe, however, including the DataFrames package is expensive...
-  @assert string(typeof(D)) == "DataFrame"
+  #D must be a dataframe, however, including the DataFrames package is expensive
   return map(eltype, D.columns)
 end
 
