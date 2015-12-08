@@ -34,9 +34,9 @@
 
 module MathUtils
 
-import Base.extrema
+export extrema, scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize
 
-export extrema, scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180
+import Base.extrema
 
 function extrema{T}(A::Array{T,2}, dim)
   mapslices(A, dim) do x
@@ -56,5 +56,11 @@ function to_plusminus_b(x::FloatingPoint, b::FloatingPoint)
 end
 to_plusminus_pi(x::FloatingPoint) = to_plusminus_b(x, float(pi))
 to_plusminus_180(x::FloatingPoint) = to_plusminus_b(x, 180.0)
+
+function quantize(x::FloatingPoint, b::FloatingPoint)
+  # quantize x to the nearest multiple of b
+  d, r = divrem(x, b)
+  return b * (d + round(r / b))
+end
 
 end #module
