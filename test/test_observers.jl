@@ -32,42 +32,32 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+using RLESUtils.Observers
+using Base.Test
 
-include("ConvertUtils.jl")
-export ConvertUtils
+function test_observers()
+  obs = Observer()
 
-include("RunCases.jl")
-export RunCases
+  logger = Any[]
+  f1(x) = push!(logger, "f1($x)")
+  f2(x) = push!(logger, "f2($x)")
+  f3(x) = push!(logger, "f3($x)")
 
-include("StringUtils.jl")
-export StringUtils
+  add_observer(obs, f1)
+  add_observer(obs, f2)
+  notify_observer(obs, 1)
+  @test logger == ["f1(1)", "f2(1)"]
+  empty!(logger)
 
-include("Obj2Dict.jl")
-export Obj2Dict
+  add_observer(obs, "x", f3)
+  notify_observer(obs, "x", 2)
+  @test logger == ["f3(2)"]
+  empty!(logger)
 
-include("FileUtils.jl")
-export FileUtils
+  empty!(obs)
+  notify_observer(obs, "x", 5)
+  @test isempty(logger)
 
-include("LookupCallbacks.jl")
-export LookupCallbacks
+end
 
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("DataFramesUtils.jl")
-export DataFramesUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-end #module
+test_observers()

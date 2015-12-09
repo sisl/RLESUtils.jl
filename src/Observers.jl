@@ -32,42 +32,37 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module Observers
 
-include("ConvertUtils.jl")
-export ConvertUtils
+export Observer, add_observer, notify_observer, empty!
 
-include("RunCases.jl")
-export RunCases
+import Base.empty!
 
-include("StringUtils.jl")
-export StringUtils
+type Observer
+  callbacks::Dict{ASCIIString,Vector{Function}}
+end
+Observer() = Observer(Dict{ASCIIString, Vector{Function}}())
 
-include("Obj2Dict.jl")
-export Obj2Dict
+function add_observer(obs::Observer, tag::ASCIIString, f::Function)
+  if !haskey(obs.callbacks, tag)
+    obs.callbacks[tag] = Function[]
+  end
+  push!(obs.callbacks[tag], f)
+end
 
-include("FileUtils.jl")
-export FileUtils
+add_observer(obs::Observer, f::Function) = add_observer(obs, "_default", f::Function)
 
-include("LookupCallbacks.jl")
-export LookupCallbacks
+function notify_observer(obs::Observer, tag::ASCIIString, arg)
+  if haskey(obs.callbacks, tag)
+    for f in obs.callbacks[tag]
+      f(arg)
+    end
+  end
+  return nothing
+end
 
-include("MathUtils.jl")
-export MathUtils
+notify_observer(obs::Observer, arg) = notify_observer(obs, "_default", arg)
 
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("DataFramesUtils.jl")
-export DataFramesUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
+empty!(obs::Observer) = empty!(obs.callbacks)
 
 end #module
