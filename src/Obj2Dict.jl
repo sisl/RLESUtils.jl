@@ -159,11 +159,16 @@ function save_obj(file::AbstractString, x)
   return file
 end
 
-function load_obj(file::AbstractString)
+function load_dict(file::AbstractString)
   f = open(file, "r")
   d = JSON.parse(f)
-  x = Obj2Dict.to_obj(d)
   close(f)
+  return d
+end
+
+function load_obj(file::AbstractString)
+  d = load_dict(file)
+  x = Obj2Dict.to_obj(d)
   return x
 end
 

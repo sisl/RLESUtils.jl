@@ -61,5 +61,6 @@ function bool(s::AbstractString)
 end
 
 convert(::Type{Bool}, s::AbstractString) = bool(s)
+convert(::Type{Int64}, s::AbstractString) = parse(Int64, s)
 
 end #module
