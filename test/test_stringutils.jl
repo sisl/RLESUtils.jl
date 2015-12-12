@@ -32,18 +32,28 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module DataFramesUtils
+using RLESUtils.StringUtils
+using Base.Test
 
-export get_col_types, get_col_names
+s = "(2345)"
+@test balanced_paren(s, 1) == 6
 
-function get_col_types(D)
-  #D must be a dataframe, however, including the DataFrames package is expensive
-  return map(eltype, D.columns)
-end
+s = "(2()5)"
+@test balanced_paren(s, 1) == 6
+@test balanced_paren(s, 3) == 4
 
-function get_col_names(D)
-  #D must be a dataframe, however, including the DataFrames package is expensive
-  return map(string, names(D))
-end
+s = "(2(45))"
+@test balanced_paren(s, 1) == 7
+@test balanced_paren(s, 3) == 6
 
-end #module
+s = "1((45)78())"
+@test balanced_paren(s, 2) == 11
+@test balanced_paren(s, 3) == 6
+@test balanced_paren(s, 9) == 10
+
+s = "1[(45)78[]]"
+@test balanced_paren(s, 2, '[', ']') == 11
+@test balanced_paren(s, 9, '[', ']') == 10
+
+s = "12(456()"
+@test balanced_paren(s, 3) == 0 #not found
