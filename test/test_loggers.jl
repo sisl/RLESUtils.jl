@@ -32,27 +32,47 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils.ArrayUtils
+using RLESUtils.Loggers
+using RLESUtils.Observers
+using Base.Test
 
-s = "(2345)"
-@test balanced_paren(s, 1) == 6
+function test_dflogger()
+  logger = DataFrameLogger([Bool,Int], ["mybool", "myint"])
+  logger.f([true, 0])
+  logger.f([false, 5])
+  d = get_log(logger)
+  @test d[:mybool] == [true, false]
+  @test d[:myint] == [0, 5]
 
-s = "(2()5)"
-@test balanced_paren(s, 1) == 6
-@test balanced_paren(s, 3) == 4
+  #test operability with Observers
+  empty!(logger)
+  obs = Observer()
+  add_observer(obs, logger.f)
+  notify_observer(obs, [false, 150])
+  notify_observer(obs, [true, -5])
+  d = get_log(logger)
+  @test d[:mybool] == [false, true]
+  @test d[:myint] == [150, -5]
+end
 
-s = "(2(45))"
-@test balanced_paren(s, 1) == 7
-@test balanced_paren(s, 3) == 6
+function test_arraylogger()
+  logger = ArrayLogger()
+  logger.f([true, 0])
+  logger.f([false, 5])
+  d = get_log(logger)
+  @test d[1] == [true, 0]
+  @test d[2] == [false, 5]
 
-s = "1((45)78())"
-@test balanced_paren(s, 2) == 11
-@test balanced_paren(s, 3) == 6
-@test balanced_paren(s, 9) == 10
+  #test operability with Observers
+  empty!(logger)
+  obs = Observer()
+  add_observer(obs, logger.f)
+  notify_observer(obs, [false, 150])
+  notify_observer(obs, [true, -5])
+  d = get_log(logger)
+  @test d[1] == [false, 150]
+  @test d[2] == [true, -5]
+end
 
-s = "1[(45)78[]]"
-@test balanced_paren(s, 2, '[', ']') == 11
-@test balanced_paren(s, 9, '[', ']') == 10
-
-s = "12(456()"
-@test balanced_paren(s, 3) == 0 #not found
+test_dflogger()
+test_arraylogger()

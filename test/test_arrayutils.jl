@@ -33,26 +33,14 @@
 # *****************************************************************************
 
 using RLESUtils.ArrayUtils
+using Base.Test
 
-s = "(2345)"
-@test balanced_paren(s, 1) == 6
+x1 = [1, 1, 1, 1]
+x2 = [1, 2, 3, 4]
+x3 = [true, true, true, true]
+x4 = [true, false, true, true]
 
-s = "(2()5)"
-@test balanced_paren(s, 1) == 6
-@test balanced_paren(s, 3) == 4
-
-s = "(2(45))"
-@test balanced_paren(s, 1) == 7
-@test balanced_paren(s, 3) == 6
-
-s = "1((45)78())"
-@test balanced_paren(s, 2) == 11
-@test balanced_paren(s, 3) == 6
-@test balanced_paren(s, 9) == 10
-
-s = "1[(45)78[]]"
-@test balanced_paren(s, 2, '[', ']') == 11
-@test balanced_paren(s, 9, '[', ']') == 10
-
-s = "12(456()"
-@test balanced_paren(s, 3) == 0 #not found
+@test elements_equal(x1) == true
+@test elements_equal(x2) == false
+@test elements_equal(x3) == true
+@test elements_equal(x4) == false

@@ -32,27 +32,18 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils.ArrayUtils
+module ArrayUtils
 
-s = "(2345)"
-@test balanced_paren(s, 1) == 6
+export elements_equal
 
-s = "(2()5)"
-@test balanced_paren(s, 1) == 6
-@test balanced_paren(s, 3) == 4
+using Iterators
 
-s = "(2(45))"
-@test balanced_paren(s, 1) == 7
-@test balanced_paren(s, 3) == 6
+#all elements in the vector are equal to each other
+function elements_equal{T}(x::Vector{T})
+  for (x1, x2) in partition(x, 2, 1)
+    x1 != x2 && return false
+  end
+  return true
+end
 
-s = "1((45)78())"
-@test balanced_paren(s, 2) == 11
-@test balanced_paren(s, 3) == 6
-@test balanced_paren(s, 9) == 10
-
-s = "1[(45)78[]]"
-@test balanced_paren(s, 2, '[', ']') == 11
-@test balanced_paren(s, 9, '[', ']') == 10
-
-s = "12(456()"
-@test balanced_paren(s, 3) == 0 #not found
+end #module

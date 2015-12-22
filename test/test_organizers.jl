@@ -32,27 +32,19 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils.ArrayUtils
+using RLESUtils.Organizers
+using Base.Test
 
-s = "(2345)"
-@test balanced_paren(s, 1) == 6
+function test_organizer()
+  org = Organizer()
+  tagged_push!(org, "folder1", 1)
+  tagged_push!(org, "folder1", 2)
+  tagged_push!(org, "folder1", 3)
+  tagged_push!(org, "folderA", 'a')
+  tagged_push!(org, "folderA", 'b')
+  tagged_push!(org, "folderA", 'c')
+  @test org["folder1"] == [1, 2, 3]
+  @test org["folderA"] == ['a', 'b', 'c']
+end
 
-s = "(2()5)"
-@test balanced_paren(s, 1) == 6
-@test balanced_paren(s, 3) == 4
-
-s = "(2(45))"
-@test balanced_paren(s, 1) == 7
-@test balanced_paren(s, 3) == 6
-
-s = "1((45)78())"
-@test balanced_paren(s, 2) == 11
-@test balanced_paren(s, 3) == 6
-@test balanced_paren(s, 9) == 10
-
-s = "1[(45)78[]]"
-@test balanced_paren(s, 2, '[', ']') == 11
-@test balanced_paren(s, 9, '[', ']') == 10
-
-s = "12(456()"
-@test balanced_paren(s, 3) == 0 #not found
+test_organizer()

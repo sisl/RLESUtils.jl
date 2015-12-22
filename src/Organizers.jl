@@ -32,27 +32,30 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils.ArrayUtils
+module Organizers
 
-s = "(2345)"
-@test balanced_paren(s, 1) == 6
+export Organizer, tagged_push!
+export setindex!, getindex, empty!, haskey
 
-s = "(2()5)"
-@test balanced_paren(s, 1) == 6
-@test balanced_paren(s, 3) == 4
+import Base: setindex!, getindex, empty!, haskey
 
-s = "(2(45))"
-@test balanced_paren(s, 1) == 7
-@test balanced_paren(s, 3) == 6
+typealias OrgDict Dict{ASCIIString,Vector{Any}}
 
-s = "1((45)78())"
-@test balanced_paren(s, 2) == 11
-@test balanced_paren(s, 3) == 6
-@test balanced_paren(s, 9) == 10
+type Organizer
+  data::OrgDict
+end
+Organizer() = Organizer(OrgDict())
 
-s = "1[(45)78[]]"
-@test balanced_paren(s, 2, '[', ']') == 11
-@test balanced_paren(s, 9, '[', ']') == 10
+function tagged_push!(org::Organizer, tag::AbstractString, x)
+  if !haskey(org, tag)
+    org[tag] = Any[]
+  end
+  push!(org[tag], x)
+end
 
-s = "12(456()"
-@test balanced_paren(s, 3) == 0 #not found
+haskey(org::Organizer, tag::AbstractString) = haskey(org.data, tag)
+getindex(org::Organizer, tag::AbstractString) = org.data[tag]
+setindex!(org::Organizer, x, tag::AbstractString) = org.data[tag] = x
+empty!(org) = empty!(org.data)
+
+end #module

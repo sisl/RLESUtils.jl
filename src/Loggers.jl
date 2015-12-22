@@ -32,27 +32,57 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils.ArrayUtils
+module Loggers
 
-s = "(2345)"
-@test balanced_paren(s, 1) == 6
+export Logger, get_log, empty!
+export ArrayLogger
+export DataFrameLogger
 
-s = "(2()5)"
-@test balanced_paren(s, 1) == 6
-@test balanced_paren(s, 3) == 4
+using DataFrames
+import Base: empty!, push!
 
-s = "(2(45))"
-@test balanced_paren(s, 1) == 7
-@test balanced_paren(s, 3) == 6
+abstract Logger
 
-s = "1((45)78())"
-@test balanced_paren(s, 2) == 11
-@test balanced_paren(s, 3) == 6
-@test balanced_paren(s, 9) == 10
+type ArrayLogger <: Logger
+  data::Vector{Any}
+  f::Function
 
-s = "1[(45)78[]]"
-@test balanced_paren(s, 2, '[', ']') == 11
-@test balanced_paren(s, 9, '[', ']') == 10
+  function ArrayLogger()
+    arraylog = new()
+    arraylog.data = Any[]
+    arraylog.f = x -> push!(arraylog, x)
+    return arraylog
+  end
+end
 
-s = "12(456()"
-@test balanced_paren(s, 3) == 0 #not found
+type DataFrameLogger <: Logger
+  data::DataFrame
+  f::Function
+
+  function DataFrameLogger{T<:Type}(eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])
+    dflog = new()
+    if isempty(elnames)
+      dflog.data = DataFrame(eltypes, 0) #nrows = 0
+    else
+      dflog.data = DataFrame(eltypes, elnames, 0) #nrows = 0
+    end
+    dflog.f = x -> push!(dflog, x)
+    return dflog
+  end
+end
+
+function DataFrameLogger{T<:Type,S<:AbstractString}(eltypes::Vector{T}, elnames::Vector{S})
+  elnames = map(symbol, elnames)
+  return DataFrameLogger(eltypes, elnames)
+end
+
+get_log(logger::DataFrameLogger) = logger.data
+get_log(logger::ArrayLogger) = logger.data
+
+empty!(logger::DataFrameLogger) = deleterows!(logger.data, 1:nrow(logger.data))
+empty!(logger::ArrayLogger) = empty!(logger.data)
+
+push!(logger::DataFrameLogger, x) = push!(logger.data, x)
+push!(logger::ArrayLogger, x) = push!(logger.data, x)
+
+end #module

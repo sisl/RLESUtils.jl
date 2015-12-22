@@ -36,13 +36,13 @@ module DataFramesUtils
 
 export get_col_types, get_col_names
 
-function get_col_types(D)
-  #D must be a dataframe, however, including the DataFrames package is expensive
+using DataFrames
+
+function get_col_types(D::DataFrame)
   return map(eltype, D.columns)
 end
 
-function get_col_names(D)
-  #D must be a dataframe, however, including the DataFrames package is expensive
+function get_col_names(D::DataFrame)
   return map(string, names(D))
 end
 

@@ -85,6 +85,14 @@ function to_dict(x::Expr)
   return d
 end
 
+function to_dict(x::Function)
+  warn("Function excluded")
+  d = ObjDict()
+  d["type"] = Function
+  d["data"] = 0 #not supported at the moment
+  return d
+end
+
 function set_fields!(x, d::ObjDict; verbose::Bool=true)
   for sym in fieldnames(x)
     if haskey(d["data"], string(sym))
@@ -116,6 +124,8 @@ function to_obj(d::ObjDict)
       x = convert(T, d["data"])
     elseif issubtype(T, Expr)
       x = parse(d["data"])
+    elseif issubtype(T, Function) #functions not supported, but still handle gracefully
+      x = () -> error("Obj2Dict: Function was stripped")
     else
       x = to_datatype(T, d)
     end

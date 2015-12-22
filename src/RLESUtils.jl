@@ -34,6 +34,9 @@
 
 module RLESUtils
 
+include("ArrayUtils.jl")
+export ArrayUtils
+
 include("ConvertUtils.jl")
 export ConvertUtils
 
@@ -69,5 +72,11 @@ export RNGWrapper
 
 include("Observers.jl")
 export Observers
+
+include("Loggers.jl")
+export Loggers
+
+include("Organizers.jl")
+export Organizers
 
 end #module
