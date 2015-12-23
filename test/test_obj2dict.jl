@@ -35,6 +35,7 @@
 using RLESUtils.Obj2Dict
 
 using Base.Test
+import Base.==
 
 type MySubType
   p::Int64
@@ -58,6 +59,12 @@ type MyTypeArray
 end
 MyTypeArray() = MyTypeArray(0,"0",[MySubType() for i=1:2])
 ==(x::MyTypeArray, y::MyTypeArray) = x.a == y.a && x.b == y.b && x.c == y.c
+
+type MyEmptyArray
+  a::Array{Bool, 2}
+end
+MyEmptyArray() = MyEmptyArray(Array(Bool, 0, 0))
+==(x::MyEmptyArray, y::MyEmptyArray) = x.a == y.a
 
 function test1(; verbose::Bool = false)
   # Test custom subtypes
@@ -104,6 +111,16 @@ function test3(; verbose::Bool = false)
   return (x, d, y)
 end
 
+function test4()
+  x = MyEmptyArray()
+  d = Obj2Dict.to_dict(x)
+  y = Obj2Dict.to_obj(d)
+
+  @test x == y
+  return (x, d, y)
+end
+
 test1()
 test2()
 test3()
+test4()

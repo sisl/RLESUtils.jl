@@ -64,8 +64,16 @@ function to_dict(x::Primitive)
 end
 
 function to_dict(x::Array)
-  d = ObjDict()
-  map(to_dict, x)
+  if isempty(x)
+    out = Any[]
+    for i = 1:ndims(x) - 1
+      out = Any[out]
+    end
+    return out
+  else
+    d = ObjDict()
+    return map(to_dict, x)
+  end
 end
 
 function to_dict(x::Dict)
@@ -86,7 +94,7 @@ function to_dict(x::Expr)
 end
 
 function to_dict(x::Function)
-  warn("Function excluded")
+  #warn("Function excluded in Obj2Dict") #drop silently or verbosely?
   d = ObjDict()
   d["type"] = Function
   d["data"] = 0 #not supported at the moment
