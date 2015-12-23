@@ -76,7 +76,4 @@ export Observers
 include("Loggers.jl")
 export Loggers
 
-include("Organizers.jl")
-export Organizers
-
 end #module

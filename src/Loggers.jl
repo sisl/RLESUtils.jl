@@ -34,55 +34,129 @@
 
 module Loggers
 
-export Logger, get_log, empty!
+export Logger, get_log, empty!, push!,setindex!, getindex, haskey, start, next, done, length,
+      push!_f, append_push!_f, save_log, load_log
 export ArrayLogger
 export DataFrameLogger
+export TaggedDFLogger, add_folder!
 
 using DataFrames
-import Base: empty!, push!
+import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length
 
 abstract Logger
 
 type ArrayLogger <: Logger
   data::Vector{Any}
-  f::Function
+end
 
-  function ArrayLogger()
-    arraylog = new()
-    arraylog.data = Any[]
-    arraylog.f = x -> push!(arraylog, x)
-    return arraylog
+ArrayLogger() = ArrayLogger(Any[])
+
+push!_f(logger::ArrayLogger, x) = x -> push!(logger, x)
+function append_push!_f(logger::ArrayLogger, appendx)
+  return x -> begin
+    push!(x, appendx...)
+    return push!(logger, x)
   end
 end
+get_log(logger::ArrayLogger) = logger.data
+empty!(logger::ArrayLogger) = empty!(logger.data)
+push!(logger::ArrayLogger, x) = push!(logger.data, x)
 
 type DataFrameLogger <: Logger
   data::DataFrame
-  f::Function
+end
 
-  function DataFrameLogger{T<:Type}(eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])
-    dflog = new()
-    if isempty(elnames)
-      dflog.data = DataFrame(eltypes, 0) #nrows = 0
-    else
-      dflog.data = DataFrame(eltypes, elnames, 0) #nrows = 0
-    end
-    dflog.f = x -> push!(dflog, x)
-    return dflog
-  end
+function DataFrameLogger{T<:Type}(eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])
+  data = isempty(elnames) ?
+    DataFrame(eltypes, 0) :
+    DataFrame(eltypes, elnames, 0) #nrows = 0
+  return DataFrameLogger(data)
 end
 
 function DataFrameLogger{T<:Type,S<:AbstractString}(eltypes::Vector{T}, elnames::Vector{S})
-  elnames = map(symbol, elnames)
-  return DataFrameLogger(eltypes, elnames)
+  return DataFrameLogger(eltypes, map(symbol, elnames))
 end
 
+push!_f(logger::DataFrameLogger, x) = x -> push!(logger, x)
+function append_push!_f(logger::DataFrameLogger, appendx)
+  return x -> begin
+    push!(x, appendx...)
+    return push!(logger, x)
+  end
+end
 get_log(logger::DataFrameLogger) = logger.data
-get_log(logger::ArrayLogger) = logger.data
-
 empty!(logger::DataFrameLogger) = deleterows!(logger.data, 1:nrow(logger.data))
-empty!(logger::ArrayLogger) = empty!(logger.data)
-
 push!(logger::DataFrameLogger, x) = push!(logger.data, x)
-push!(logger::ArrayLogger, x) = push!(logger.data, x)
+
+type TaggedDFLogger <: Logger
+  data::Dict{ASCIIString,DataFrame}
+end
+TaggedDFLogger() = TaggedDFLogger(Dict{ASCIIString,DataFrame}())
+
+push!_f(logger::TaggedDFLogger, tag::AbstractString) = x -> push!(logger, tag, x)
+function append_push!_f(logger::TaggedDFLogger, tag::AbstractString, appendx)
+  return x -> begin
+    push!(x, appendx...)
+    return push!(logger, tag, x)
+  end
+end
+
+function add_folder!{T<:Type,S<:AbstractString}(logger::TaggedDFLogger, tag::AbstractString, eltypes::Vector{T}, elnames::Vector{S})
+  return add_folder!(logger, tag, eltypes, map(symbol, elnames))
+end
+
+function add_folder!{T<:Type}(logger::TaggedDFLogger, tag::AbstractString, eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])
+  if !haskey(logger, tag)
+    logger.data[tag] = DataFrame(eltypes, elnames, 0)
+  else
+    warn("TaggedDFLogger: Folder already exists: $tag")
+  end
+  return logger
+end
+
+function save_log(file::AbstractString, logger::TaggedDFLogger)
+  fileroot = splitext(file)[1]
+  f = open(file, "w")
+  println(f, "__type__=TaggedDFLogger")
+  for (tag, log) in get_log(logger)
+    fname = "$(fileroot)_$tag.csv.gz"
+    println(f, "$tag=$fname")
+    writetable(fname, log)
+  end
+  close(f)
+end
+
+function load_log(file::AbstractString)
+  logger = TaggedDFLogger()
+  f = open(file)
+  for line in eachline(f)
+    line = chomp(line)
+    k, v = split(line, "=")
+    if k == "__type__" #crude typechecking
+      if v != "TaggedDFLogger"
+        error("TaggedDFLogger: Not a TaggedDFLogger file!")
+      end
+    else
+      tag, dffile = k, v
+      D = readtable(dffile)
+      logger.data[tag] = D
+    end
+  end
+  close(f)
+  return logger
+end
+
+get_log(logger::TaggedDFLogger) = logger.data
+get_log(logger::TaggedDFLogger, tag::AbstractString) = logger.data[tag]
+push!(logger::TaggedDFLogger,tag::AbstractString, x) = push!(logger.data[tag], x)
+
+haskey(logger::TaggedDFLogger, tag::AbstractString) = haskey(logger.data, tag)
+getindex(logger::TaggedDFLogger, tag::AbstractString) = logger.data[tag]
+setindex!(logger::TaggedDFLogger, x, tag::AbstractString) = logger.data[tag] = x
+empty!(logger::TaggedDFLogger) = empty!(logger.data)
+start(logger::TaggedDFLogger) = start(logger.data)
+next(logger::TaggedDFLogger, s) = next(logger.data, s)
+done(logger::TaggedDFLogger, s) = done(logger.data, s)
+length(logger::TaggedDFLogger) = length(logger.data)
 
 end #module

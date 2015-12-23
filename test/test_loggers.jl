@@ -34,12 +34,14 @@
 
 using RLESUtils.Loggers
 using RLESUtils.Observers
+using DataFrames
 using Base.Test
 
 function test_dflogger()
   logger = DataFrameLogger([Bool,Int], ["mybool", "myint"])
-  logger.f([true, 0])
-  logger.f([false, 5])
+  f = push!_f(logger)
+  f([true, 0])
+  f([false, 5])
   d = get_log(logger)
   @test d[:mybool] == [true, false]
   @test d[:myint] == [0, 5]
@@ -47,7 +49,7 @@ function test_dflogger()
   #test operability with Observers
   empty!(logger)
   obs = Observer()
-  add_observer(obs, logger.f)
+  add_observer(obs, push!_f(logger))
   notify_observer(obs, [false, 150])
   notify_observer(obs, [true, -5])
   d = get_log(logger)
@@ -57,8 +59,9 @@ end
 
 function test_arraylogger()
   logger = ArrayLogger()
-  logger.f([true, 0])
-  logger.f([false, 5])
+  f = push!_f(logger)
+  f([true, 0])
+  f([false, 5])
   d = get_log(logger)
   @test d[1] == [true, 0]
   @test d[2] == [false, 5]
@@ -66,7 +69,7 @@ function test_arraylogger()
   #test operability with Observers
   empty!(logger)
   obs = Observer()
-  add_observer(obs, logger.f)
+  add_observer(obs, push!_f(logger))
   notify_observer(obs, [false, 150])
   notify_observer(obs, [true, -5])
   d = get_log(logger)
@@ -74,5 +77,24 @@ function test_arraylogger()
   @test d[2] == [true, -5]
 end
 
+function test_tdflogger()
+  logger = TaggedDFLogger()
+  add_folder!(logger, "folder1", [Bool, Int64], ["mybool", "myint"])
+  add_folder!(logger, "folder2", [Float64, Bool], ["myfloat", "mybool"])
+  g1 = push!_f(logger, "folder1")
+  g2 = push!_f(logger, "folder2")
+  g1([true, 1])
+  g1([false, 2])
+  g2([1.1, false])
+  g2([2.2, true])
+  log1 = get_log(logger, "folder1")
+  log2 = get_log(logger, "folder2")
+  @test log1[:mybool] == [true, false]
+  @test log1[:myint] == [1, 2]
+  @test log2[:myfloat] == [1.1, 2.2]
+  @test log2[:mybool] == [false, true]
+end
+
 test_dflogger()
 test_arraylogger()
+test_tdflogger()
