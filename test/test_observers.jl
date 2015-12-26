@@ -45,19 +45,24 @@ function test_observers()
 
   add_observer(obs, f1)
   add_observer(obs, f2)
-  notify_observer(obs, 1)
+  @notify_observer_default(obs, 1)
   @test logger == ["f1(1)", "f2(1)"]
   empty!(logger)
 
   add_observer(obs, "x", f3)
-  notify_observer(obs, "x", 2)
+  @notify_observer(obs, "x", 2)
   @test logger == ["f3(2)"]
   empty!(logger)
 
   empty!(obs)
-  notify_observer(obs, "x", 5)
+  @notify_observer(obs, "x", 5)
   @test isempty(logger)
 
+  empty!(obs)
+  big_alloc = false
+  make_big_alloc() = big_alloc = true
+  @notify_observer_default(obs, make_big_alloc())
+  @test big_alloc == false #should not be called
 end
 
 test_observers()

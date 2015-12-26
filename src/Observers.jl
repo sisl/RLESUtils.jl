@@ -34,7 +34,7 @@
 
 module Observers
 
-export Observer, add_observer, notify_observer, empty!
+export Observer, add_observer, empty!, @notify_observer, @notify_observer_default
 
 import Base.empty!
 
@@ -52,16 +52,25 @@ end
 
 add_observer(obs::Observer, f::Function) = add_observer(obs, "_default", f::Function)
 
-function notify_observer(obs::Observer, tag::ASCIIString, arg)
-  if haskey(obs.callbacks, tag)
-    for f in obs.callbacks[tag]
-      f(arg)
+#macro form allows allocations in arg to be no cost
+#i.e., in a functional form notify_observer(obs, tag, big_alloc()) will occur immediately
+#but avoided in macro form
+macro notify_observer(obs, tag, arg)
+  quote
+    if haskey($(esc(obs)).callbacks, $tag)
+      for f in $(esc(obs)).callbacks[$tag]
+        f($(esc(arg)))
+      end
     end
   end
-  return nothing
 end
 
-notify_observer(obs::Observer, arg) = notify_observer(obs, "_default", arg)
+#there's no multiple dispatch on macros, so need a unique name
+macro notify_observer_default(obs, arg)
+  quote
+    @notify_observer($(esc(obs)), "_default", $(esc(arg)))
+  end
+end
 
 empty!(obs::Observer) = empty!(obs.callbacks)
 

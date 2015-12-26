@@ -35,13 +35,13 @@
 module Loggers
 
 export Logger, get_log, empty!, push!,setindex!, getindex, haskey, start, next, done, length,
-      push!_f, append_push!_f, save_log, load_log
+      push!_f, append_push!_f, save_log, load_log, keys, values
 export ArrayLogger
 export DataFrameLogger
 export TaggedDFLogger, add_folder!
 
 using DataFrames
-import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length
+import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, values
 
 abstract Logger
 
@@ -150,6 +150,8 @@ get_log(logger::TaggedDFLogger) = logger.data
 get_log(logger::TaggedDFLogger, tag::AbstractString) = logger.data[tag]
 push!(logger::TaggedDFLogger,tag::AbstractString, x) = push!(logger.data[tag], x)
 
+keys(logger::TaggedDFLogger) = keys(logger.data)
+values(logger::TaggedDFLogger) = values(logger.data)
 haskey(logger::TaggedDFLogger, tag::AbstractString) = haskey(logger.data, tag)
 getindex(logger::TaggedDFLogger, tag::AbstractString) = logger.data[tag]
 setindex!(logger::TaggedDFLogger, x, tag::AbstractString) = logger.data[tag] = x
