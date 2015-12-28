@@ -64,9 +64,6 @@ export GitUtils
 include("LatexUtils.jl")
 export LatexUtils
 
-include("DataFramesUtils.jl")
-export DataFramesUtils
-
 include("RNGWrapper.jl")
 export RNGWrapper
 
