@@ -37,12 +37,9 @@ module FileUtils
 export readdir_ext
 
 function readdir_ext(ext::AbstractString, dir::AbstractString=".")
-  if ext[1] != '.'
-    ext = string(".", ext) #prepend the . if it's not already there
-  end
   files = readdir(dir)
   files = convert(Vector{ASCIIString}, files)
-  filter!(f -> splitext(f)[2] == ext, files)
+  filter!(f -> endswith(f, ext), files)
   map!(f -> joinpath(dir, f), files)
   return files
 end
