@@ -54,6 +54,7 @@ ArrayLogger() = ArrayLogger(Any[])
 push!_f(logger::ArrayLogger, x) = x -> push!(logger, x)
 function append_push!_f(logger::ArrayLogger, appendx)
   return x -> begin
+    x = convert(Vector{Any}, x)
     push!(x, appendx...)
     return push!(logger, x)
   end
@@ -80,6 +81,7 @@ end
 push!_f(logger::DataFrameLogger, x) = x -> push!(logger, x)
 function append_push!_f(logger::DataFrameLogger, appendx)
   return x -> begin
+    x = convert(Vector{Any}, x)
     push!(x, appendx...)
     return push!(logger, x)
   end
@@ -96,6 +98,7 @@ TaggedDFLogger() = TaggedDFLogger(Dict{ASCIIString,DataFrame}())
 push!_f(logger::TaggedDFLogger, tag::AbstractString) = x -> push!(logger, tag, x)
 function append_push!_f(logger::TaggedDFLogger, tag::AbstractString, appendx)
   return x -> begin
+    x = convert(Vector{Any}, x)
     push!(x, appendx...)
     return push!(logger, tag, x)
   end
