@@ -41,6 +41,7 @@ module Obj2Dict
 
 import Base.convert
 using JSON
+using DataStructures
 using ..StringUtils
 
 typealias ObjDict Dict{AbstractString, Any}
@@ -96,8 +97,15 @@ end
 function to_dict(x::Function)
   #warn("Function excluded in Obj2Dict") #drop silently or verbosely?
   d = ObjDict()
-  d["type"] = Function
+  d["type"] = string(Function)
   d["data"] = 0 #not supported at the moment
+  return d
+end
+
+function to_dict{T}(x::Stack{Deque{T}})
+  d = ObjDict()
+  d["type"] = string(typeof(x))
+  d["data"] = convert(Array, x)
   return d
 end
 
@@ -134,6 +142,8 @@ function to_obj(d::ObjDict)
       x = parse(d["data"])
     elseif issubtype(T, Function) #functions not supported, but still handle gracefully
       x = () -> error("Obj2Dict: Function was stripped")
+    elseif  issubtype(T, Stack)
+      x = convert(Stack, d["data"])
     else
       x = to_datatype(T, d)
     end
@@ -192,7 +202,26 @@ end
 
 #workaround for JSON limitation that cannot recover 2D arrays.  They get recovered
 #to vector of vector
-convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{T,1},1}) = hcat(x...)
-convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{Union{},1},1}) = Array(T, 0, 0)
+convert{T}(::Type{Array{T,2}}, x::Array{Array{T,1},1}) = hcat(x...)
+convert{T}(::Type{Array{T,2}}, x::Array{Array{Union{},1},1}) = Array(T, 0, 0)
+convert{T}(::Type{Stack{Deque{T}}}) = Stack(T)
+
+function convert{T}(::Type{Array}, S::Stack{Deque{T}})
+  S_copy = deepcopy(S)
+  v = T[]
+  while !isempty(S_copy)
+    push!(v, pop!(S_copy))
+  end
+  return v
+end
+
+function convert{T}(::Type{Stack}, v::Vector{T})
+  v_copy = deepcopy(v)
+  S = Stack(T)
+  while !isempty(v_copy)
+    push!(S, pop!(v_copy))
+  end
+  return S
+end
 
 end #module
