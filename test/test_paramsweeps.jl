@@ -32,51 +32,14 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+using RLESUtils.ParamSweeps
 
-include("ArrayUtils.jl")
-export ArrayUtils
+function myfunction(x1, x2; verbose=false)
+  verbose && println("x1=$x1, x2=$x2")
+  return x1 + x2
+end
 
-include("ConvertUtils.jl")
-export ConvertUtils
+script = ParamSweep(myfunction, [1, 2, 3], [4, 5, 6])
+result = run(script)
 
-#deprecated
-include("RunCases.jl")
-export RunCases
-
-include("StringUtils.jl")
-export StringUtils
-
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-end #module
+@test result == [5, 6, 7, 6, 7, 8, 7, 8, 9]

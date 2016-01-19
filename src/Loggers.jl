@@ -78,7 +78,7 @@ function DataFrameLogger{T<:Type,S<:AbstractString}(eltypes::Vector{T}, elnames:
   return DataFrameLogger(eltypes, map(symbol, elnames))
 end
 
-push!_f(logger::DataFrameLogger, x) = x -> push!(logger, x)
+push!_f(logger::DataFrameLogger) = x -> push!(logger, x)
 function append_push!_f(logger::DataFrameLogger, appendx)
   return x -> begin
     x = convert(Vector{Any}, x)
@@ -89,6 +89,11 @@ end
 get_log(logger::DataFrameLogger) = logger.data
 empty!(logger::DataFrameLogger) = deleterows!(logger.data, 1:nrow(logger.data))
 push!(logger::DataFrameLogger, x) = push!(logger.data, x)
+
+function save_log(fileroot::AbstractString, logger::DataFrameLogger)
+  file = "$(fileroot).csv.gz"
+  writetable(file, logger.data)
+end
 
 type TaggedDFLogger <: Logger
   data::Dict{ASCIIString,DataFrame}
@@ -129,7 +134,7 @@ function save_log(file::AbstractString, logger::TaggedDFLogger)
   close(f)
 end
 
-function load_log(file::AbstractString)
+function load_log(::Type{TaggedDFLogger}, file::AbstractString)
   logger = TaggedDFLogger()
   f = open(file)
   for line in eachline(f)

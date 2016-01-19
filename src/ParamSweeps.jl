@@ -32,51 +32,39 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+##Usage
+#
+#
+module ParamSweeps
 
-include("ArrayUtils.jl")
-export ArrayUtils
+export ParamSweep, Iterable, run
 
-include("ConvertUtils.jl")
-export ConvertUtils
+using Iterators
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+import Base: empty!, push!, run
 
-include("StringUtils.jl")
-export StringUtils
+typealias Iterable Any
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
+type ParamSweep
+  f::Function #function to be called
+  argsrc::Vector{Iterable} #vector of iterables, cartesian product will be called on f
+end
 
-include("FileUtils.jl")
-export FileUtils
+ParamSweep(f::Function) = ParamSweep(f, Iterable[])
+function ParamSweep(f::Function, argsrc::Iterable...)
+  script = ParamSweep(f) #this construction avoids infinite recursions caused by Iterable being Any
+  push!(script, argsrc...)
+  return script
+end
 
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
+function run(script::ParamSweep)
+  map(product(script.argsrc...)) do args
+    script.f(args...)
+  end
+end
 
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
+push!(script::ParamSweep, iterable::Iterable) = push!(script.argsrc, iterable)
+push!(script::ParamSweep, iterables::Iterable...) = push!(script.argsrc, iterables...)
+empty!(script::ParamSweep) = empty!(script.argsrc)
 
 end #module
