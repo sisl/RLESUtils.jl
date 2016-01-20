@@ -42,6 +42,8 @@ function escape_latex(s::AbstractString)
   s = replace(s, "<", "\$<\$")
   s = replace(s, ">", "\$>\$")
   s = replace(s, "&", "\\&")
+  s = replace(s, "[", "\$[\$")
+  s = replace(s, "]", "\$]\$")
   return s
 end
 
