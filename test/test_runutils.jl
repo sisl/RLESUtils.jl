@@ -32,27 +32,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module FileUtils
+addprocs(4)
 
-export readdir_ext, textfile
+using RLESUtils.RunUtils
 
-function readdir_ext(ext::AbstractString, dir::AbstractString=".")
-  files = readdir(dir)
-  files = convert(Vector{ASCIIString}, files)
-  filter!(f -> endswith(f, ext), files)
-  map!(f -> joinpath(dir, f), files)
-  return files
-end
-
-function textfile(file::AbstractString, args...; kwargs...)
-  open(file, "w") do f
-    for x in args
-      println(f, x)
-    end
-    for (k, v) in kwargs
-      println(f, k, "=", v)
-    end
-  end
-end
-
-end #module
+parallel_include("./parallel_include_test")

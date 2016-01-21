@@ -34,7 +34,7 @@
 
 module StringUtils
 
-export hamming, balanced_paren, capitalize_first
+export hamming, balanced_paren, capitalize_first, dump2string
 import Base: bool, convert
 
 const TRUES = ASCIIString["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
@@ -85,5 +85,11 @@ function balanced_paren(s::AbstractString, start_index::Int64,
 end
 
 capitalize_first(s::AbstractString) = string(uppercase(s[1]), s[2:end])
+
+function dump2string(x)
+  io = IOBuffer()
+  dump(io, x)
+  return takebuf_string(io)
+end
 
 end #module

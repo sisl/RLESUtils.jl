@@ -79,4 +79,7 @@ export Loggers
 include("ParamSweeps.jl")
 export ParamSweeps
 
+include("RunUtils.jl")
+export RunUtils
+
 end #module

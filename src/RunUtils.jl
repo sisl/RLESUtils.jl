@@ -32,27 +32,18 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module FileUtils
+module RunUtils
 
-export readdir_ext, textfile
+export parallel_include
 
-function readdir_ext(ext::AbstractString, dir::AbstractString=".")
-  files = readdir(dir)
-  files = convert(Vector{ASCIIString}, files)
-  filter!(f -> endswith(f, ext), files)
-  map!(f -> joinpath(dir, f), files)
-  return files
-end
+using ..FileUtils
 
-function textfile(file::AbstractString, args...; kwargs...)
-  open(file, "w") do f
-    for x in args
-      println(f, x)
-    end
-    for (k, v) in kwargs
-      println(f, k, "=", v)
-    end
-  end
+parallel_include(files::AbstractString...) = pmap(include, files)
+parallel_include{T}(files::Vector{T}) = pmap(include, files)
+
+function parallel_include(dir::AbstractString=".")
+  files = readdir_ext(".jl", dir)
+  return parallel_include(files)
 end
 
 end #module
