@@ -34,9 +34,9 @@
 
 module Observers
 
-export Observer, add_observer, empty!, @notify_observer, @notify_observer_default
+export Observer, add_observer, @notify_observer, @notify_observer_default
 
-import Base.empty!
+import Base: empty!, delete!
 
 type Observer
   callbacks::Dict{ASCIIString,Vector{Function}}
@@ -73,5 +73,6 @@ macro notify_observer_default(obs, arg)
 end
 
 empty!(obs::Observer) = empty!(obs.callbacks)
+delete!(obs::Observer, tag::ASCIIString="_default") = delete!(obs.callbacks, tag)
 
 end #module

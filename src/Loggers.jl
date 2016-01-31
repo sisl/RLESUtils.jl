@@ -135,6 +135,7 @@ function save_log(file::AbstractString, logger::TaggedDFLogger)
 end
 
 function load_log(::Type{TaggedDFLogger}, file::AbstractString)
+  dir = dirname(file)
   logger = TaggedDFLogger()
   f = open(file)
   for line in eachline(f)
@@ -146,8 +147,12 @@ function load_log(::Type{TaggedDFLogger}, file::AbstractString)
       end
     else
       tag, dffile = k, v
-      D = readtable(dffile)
-      logger.data[tag] = D
+      try
+        D = readtable(joinpath(dir, dffile))
+        logger.data[tag] = D
+      catch
+        warn("logs[\"$tag\"] could not be restored")
+      end
     end
   end
   close(f)

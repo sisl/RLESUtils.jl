@@ -38,9 +38,11 @@ export parallel_include
 
 using ..FileUtils
 
-parallel_include(files::AbstractString...) = pmap(include, files)
-parallel_include{T}(files::Vector{T}) = pmap(include, files)
+function parallel_include(files::AbstractString...)
+  pmap(include, files)
+end
 
+parallel_include{T}(files::Vector{T}) = parallel_include(files...)
 function parallel_include(dir::AbstractString=".")
   files = readdir_ext(".jl", dir)
   return parallel_include(files)
