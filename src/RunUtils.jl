@@ -38,8 +38,11 @@ export parallel_include
 
 using ..FileUtils
 
+#parallel spawn different processes
 function parallel_include(files::AbstractString...)
-  pmap(include, files)
+  pmap(files) do f
+    success(`julia $f`)
+  end
 end
 
 parallel_include{T}(files::Vector{T}) = parallel_include(files...)
