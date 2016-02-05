@@ -174,4 +174,5 @@ next(logger::TaggedDFLogger, s) = next(logger.data, s)
 done(logger::TaggedDFLogger, s) = done(logger.data, s)
 length(logger::TaggedDFLogger) = length(logger.data)
 
+
 end #module

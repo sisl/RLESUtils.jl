@@ -32,57 +32,41 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+#vectorize an object of arbitrary type
+module Vectorizer
 
-include("ArrayUtils.jl")
-export ArrayUtils
+export vecnames, vectypes, vectorize
 
-include("ConvertUtils.jl")
-export ConvertUtils
+vecnames{T}(obj::T) = fieldnames(obj)
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+function vectypes{T}(obj::T)
+  map(fieldnames(obj)) do field
+    ftype = fieldtype(T, field)
+    return isbits(ftype) ? ftype : ASCIIString
+  end
+end
 
-include("StringUtils.jl")
-export StringUtils
+function vectypes(dtype::DataType)
+  map(fieldnames(dtype)) do field
+    ftype = fieldtype(dtype, field)
+    return isbits(ftype) ? ftype : ASCIIString
+  end
+end
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
+function vectorize{T}(obj::T; maxlength::Int64=50)
+  V = map(fieldnames(obj)) do field
+    ftype = fieldtype(T, field)
+    f = getfield(obj, field)
+    val = if isbits(ftype)
+      f #return
+    else
+      s = string(f)
+      len = min(length(s), maxlength)
+      s[1:len] #return
+    end
+    return val
+  end
+  return V
+end
 
 end #module

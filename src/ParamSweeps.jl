@@ -38,10 +38,11 @@
 module ParamSweeps
 
 export ParamSweep, Iterable, run
+export KWParamSweep
 
 using Iterators
 
-import Base: empty!, push!, run
+import Base: empty!, push!, run, start, next, done, keys, values
 
 typealias Iterable Any
 
@@ -66,5 +67,46 @@ end
 push!(script::ParamSweep, iterable::Iterable) = push!(script.argsrc, iterable)
 push!(script::ParamSweep, iterables::Iterable...) = push!(script.argsrc, iterables...)
 empty!(script::ParamSweep) = empty!(script.argsrc)
+
+##########
+
+type KWParamSweep
+  f::Function #function to be called
+  argsrc::Dict{Symbol,Iterable} #keyed iterables, cartesian product will be called on f
+end
+
+KWParamSweep(f::Function) = KWParamSweep(f, Dict{Symbol,Iterable}())
+KWParamSweep(f::Function; kwargs::Iterable...) = KWParamSweep(f, Dict{Symbol,Iterable}(kwargs))
+
+function run(script::KWParamSweep)
+  map(script) do kwargs
+    script.f(; kwargs...)
+  end
+end
+
+#incremental build of param iterables
+push!(script::KWParamSweep, key::Symbol, iterable::Iterable) = script.argsrc[key] = iterable
+empty!(script::KWParamSweep) = empty!(script.argsrc)
+
+type KWIteratorState
+  it
+  state
+end
+
+function start(script::KWParamSweep)
+  it = product(values(script.argsrc)...)
+  return KWIteratorState(it, start(it))
+end
+
+function next(script::KWParamSweep, s::KWIteratorState)
+  vals, s.state = next(s.it, s.state)
+  x = collect(zip(keys(script), vals))
+  return x, s
+end
+
+done(script::KWParamSweep, s::KWIteratorState) = done(s.it, s.state)
+
+keys(script::KWParamSweep) = keys(script.argsrc)
+values(script::KWParamSweep) = values(script.argsrc)
 
 end #module
