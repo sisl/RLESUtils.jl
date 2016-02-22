@@ -32,66 +32,39 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+using RLESUtils.CodeUtils
+using Base.Test
 
-include("ArrayUtils.jl")
-export ArrayUtils
+function f()
+  s = 0
+  i = 1
+  for x in [10, 20, 30]
+    s += x + i
+    i += 1
+  end
+  return s
+end
 
-include("ConvertUtils.jl")
-export ConvertUtils
+function g()
+  s = 0
+  i = 9999
+  @enumerate i for x in [10, 20, 30]
+    s += x + i
+  end
+  return s
+end
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+#compile
+@time f()
+@time g()
 
-include("StringUtils.jl")
-export StringUtils
+#should give same performance
+@time f()
+@time g()
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("Rentals.jl")
-export Rentals
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
-
-end #module
+#n should not be overwritten
+n = 9999
+@enumerate n for x in [10, 20, 30]
+  println(x, n)
+end
+@test n == 9999

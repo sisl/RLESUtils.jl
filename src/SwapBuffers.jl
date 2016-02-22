@@ -32,66 +32,40 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module SwapBuffers
 
-include("ArrayUtils.jl")
-export ArrayUtils
+export SwapBuffer, active, inactive, swap!, set_active!, set_inactive!
 
-include("ConvertUtils.jl")
-export ConvertUtils
+type SwapBuffer{T}
+  bufferA::T
+  bufferB::T
+  isactiveA::Bool
+end
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+SwapBuffer{T}(bufferA::T, bufferB::T) = SwapBuffer(bufferA, bufferB, true)
 
-include("StringUtils.jl")
-export StringUtils
+#return active buffer
+active{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferA : sbuf.bufferB
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
+#return inactive buffer
+inactive{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferB : sbuf.bufferA
 
-include("FileUtils.jl")
-export FileUtils
+function set_active!{T}(sbuf::SwapBuffer{T}, x::T)
+  if sbuf.isactiveA
+    sbuf.bufferA = x
+  else
+    sbuf.bufferB = x
+  end
+end
 
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
+function set_inactive!{T}(sbuf::SwapBuffer{T}, x::T)
+  if sbuf.isactiveA
+    sbuf.bufferB = x
+  else
+    sbuf.bufferA = x
+  end
+end
 
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("Rentals.jl")
-export Rentals
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
+swap!{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA = !sbuf.isactiveA
 
 end #module

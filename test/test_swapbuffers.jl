@@ -32,66 +32,26 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+using RLESUtils.SwapBuffers
+using Base.Test
 
-include("ArrayUtils.jl")
-export ArrayUtils
+type MyType
+  a::Int64
+end
 
-include("ConvertUtils.jl")
-export ConvertUtils
+sbuf = SwapBuffer(MyType(0), MyType(0))
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+x = active(sbuf)
+x.a = 1
 
-include("StringUtils.jl")
-export StringUtils
+swap!(sbuf)
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
+x = active(sbuf)
+x.a = 2
 
-include("FileUtils.jl")
-export FileUtils
+swap!(sbuf)
+x = active(sbuf)
+y = inactive(sbuf)
 
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("Rentals.jl")
-export Rentals
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
-
-end #module
+@test x.a == 1
+@test y.a == 2

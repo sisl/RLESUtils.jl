@@ -32,66 +32,27 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module CodeUtils
 
-include("ArrayUtils.jl")
-export ArrayUtils
+export @enumerate
 
-include("ConvertUtils.jl")
-export ConvertUtils
-
-#deprecated
-include("RunCases.jl")
-export RunCases
-
-include("StringUtils.jl")
-export StringUtils
-
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("Rentals.jl")
-export Rentals
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
+#same as enumerate from iterators.jl except doesn't allocate memory for the tuples
+macro enumerate(i, loop)
+  if !isa(loop, Expr) || !is(loop.head, :for)
+    error("malformed @enumerate loop")
+  end
+  body = quote
+    $(loop.args[2])
+    $i += 1
+  end
+  loop1 = Expr(:for, loop.args[1], body)
+  ex = quote
+    let
+      local $(esc(i)) = 1
+      $(esc(loop1))
+    end
+  end
+  return ex
+end
 
 end #module

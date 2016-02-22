@@ -34,7 +34,7 @@
 
 module StringUtils
 
-export hamming, balanced_paren, capitalize_first, dump2string
+export hamming, balanced_paren, capitalize_first, dump2string, @printeval
 import Base: bool, convert
 
 const TRUES = ASCIIString["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
@@ -90,6 +90,15 @@ function dump2string(x)
   io = IOBuffer()
   dump(io, x)
   return takebuf_string(io)
+end
+
+macro printeval(line)
+  p = :(println($(sprint(Base.show_unquoted, line))))
+  ex = quote
+    $p
+    $(esc(line))
+  end
+  return ex
 end
 
 end #module

@@ -32,66 +32,32 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
 
-include("ArrayUtils.jl")
-export ArrayUtils
+using RLESUtils.Rentals
+using DerivationTrees
+using Base.Test
 
-include("ConvertUtils.jl")
-export ConvertUtils
+N = 5;
+rental = Rental(DerivTreeNode, N);
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+A = Array(DerivTreeNode, N);
 
-include("StringUtils.jl")
-export StringUtils
+@time A[1] = checkout(rental);
+@time A[2] = checkout(rental);
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
+@time checkin(rental, A[1]);
+@time checkin(rental, A[2]);
 
-include("FileUtils.jl")
-export FileUtils
+@time A[1] = checkout(rental);
+@time A[2] = checkout(rental);
 
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
+@time checkin(rental, A[1]);
+@time checkin(rental, A[2]);
 
-include("MathUtils.jl")
-export MathUtils
+@time A[1] = pop!(rental.inventory);
+@time A[2] = pop!(rental.inventory);
 
-include("GitUtils.jl")
-export GitUtils
+@time push!(rental.inventory, A[1]);
+@time push!(rental.inventory, A[2]);
 
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("Rentals.jl")
-export Rentals
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
-
-end #module
+@time 1;

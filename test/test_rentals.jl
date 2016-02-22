@@ -32,66 +32,32 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
 
-include("ArrayUtils.jl")
-export ArrayUtils
+using RLESUtils.Rentals
+using Base.Test
 
-include("ConvertUtils.jl")
-export ConvertUtils
+type MyType
+  a::Int64
+  b::Bool
+end
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+MyType() = MyType(1, true)
 
-include("StringUtils.jl")
-export StringUtils
+rental = Rental(MyType, 5)
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
+A = [checkout(rental) for i=1:5]
 
-include("FileUtils.jl")
-export FileUtils
+try
+  checkout(rental) #cause exception
+  @test false
+catch
+  @test true
+end
 
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
+@test length(rental) == 0
 
-include("MathUtils.jl")
-export MathUtils
+for a in A
+  checkin(rental, a)
+end
 
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("Rentals.jl")
-export Rentals
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
-
-end #module
+@test length(rental) == 5

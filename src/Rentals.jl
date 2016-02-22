@@ -32,66 +32,58 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+#memory pool, preallocate a collection of objects, checkout from pool and checkin when done
+#dynamically allocate more until max_allocs
+module MemPools
 
-include("ArrayUtils.jl")
-export ArrayUtils
+export MemPool, checkin, checkout
 
-include("ConvertUtils.jl")
-export ConvertUtils
+import Base: length, eltype
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+using DataStructures
 
-include("StringUtils.jl")
-export StringUtils
+immutable MaxSizeException <: Exception end
 
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
+type MemPool{T}
+  T::Type
+  inventory::Stack{Deque{T}}
+  n_allocs::Int64
+  max_allocs::Int64
+end
 
-include("FileUtils.jl")
-export FileUtils
+function MemPool(T::Type, init_allocs::Int64, max_allocs::Int64)
+  rental = MemPool(T, Stack(T), 0, max_allocs)
+  allocate!(rental, init_allocs)
+  return rental
+end
 
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
+function checkout{T}(rental::MemPool{T})
+  if isempty(rental.inventory)
+    return allocate(rental)
+  else
+    return pop!(rental.inventory)
+  end
+end
 
-include("MathUtils.jl")
-export MathUtils
+function checkin{T}(rental::MemPool{T}, obj::T)
+  push!(rental.inventory, obj)
+end
 
-include("GitUtils.jl")
-export GitUtils
+length{T}(rental::MemPool{T}) = length(rental.inventory)
+eltype{T}(rental::MemPool{T}) = T
 
-include("LatexUtils.jl")
-export LatexUtils
+function allocate!{T}(rental::MemPool{T}, N::Int64)
+  for i = 1:N
+    push!(rental.inventory, allocate(rental))
+  end
+end
 
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("Rentals.jl")
-export Rentals
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
+function allocate{T}(rental::MemPool{T})
+  if rental.n_allocs >= rental.max_allocs
+    throw(MaxSizeException())
+  end
+  rental.n_allocs += 1
+  return rental.T()
+end
 
 end #module
