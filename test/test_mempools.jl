@@ -33,7 +33,7 @@
 # *****************************************************************************
 
 
-using RLESUtils.Rentals
+using RLESUtils.MemPools
 using Base.Test
 
 type MyType
@@ -43,21 +43,21 @@ end
 
 MyType() = MyType(1, true)
 
-rental = Rental(MyType, 5)
+pool = MemPool(MyType, 5)
 
-A = [checkout(rental) for i=1:5]
+A = [checkout(pool) for i=1:5]
 
 try
-  checkout(rental) #cause exception
+  checkout(pool) #cause exception
   @test false
 catch
   @test true
 end
 
-@test length(rental) == 0
+@test length(pool) == 0
 
 for a in A
-  checkin(rental, a)
+  checkin(pool, a)
 end
 
-@test length(rental) == 5
+@test length(pool) == 5

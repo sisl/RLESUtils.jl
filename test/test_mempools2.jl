@@ -33,31 +33,31 @@
 # *****************************************************************************
 
 
-using RLESUtils.Rentals
+using RLESUtils.MemPools
 using DerivationTrees
 using Base.Test
 
 N = 5;
-rental = Rental(DerivTreeNode, N);
+pool = MemPool(DerivTreeNode, N);
 
 A = Array(DerivTreeNode, N);
 
-@time A[1] = checkout(rental);
-@time A[2] = checkout(rental);
+@time A[1] = checkout(pool);
+@time A[2] = checkout(pool);
 
-@time checkin(rental, A[1]);
-@time checkin(rental, A[2]);
+@time checkin(pool, A[1]);
+@time checkin(pool, A[2]);
 
-@time A[1] = checkout(rental);
-@time A[2] = checkout(rental);
+@time A[1] = checkout(pool);
+@time A[2] = checkout(pool);
 
-@time checkin(rental, A[1]);
-@time checkin(rental, A[2]);
+@time checkin(pool, A[1]);
+@time checkin(pool, A[2]);
 
-@time A[1] = pop!(rental.inventory);
-@time A[2] = pop!(rental.inventory);
+@time A[1] = pop!(pool.inventory);
+@time A[2] = pop!(pool.inventory);
 
-@time push!(rental.inventory, A[1]);
-@time push!(rental.inventory, A[2]);
+@time push!(pool.inventory, A[1]);
+@time push!(pool.inventory, A[2]);
 
 @time 1;

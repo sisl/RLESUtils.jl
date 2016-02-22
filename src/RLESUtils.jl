@@ -85,8 +85,8 @@ export RunUtils
 include("Vectorizer.jl")
 export Vectorizer
 
-include("Rentals.jl")
-export Rentals
+include("MemPools.jl")
+export MemPools
 
 include("CodeUtils.jl")
 export CodeUtils
