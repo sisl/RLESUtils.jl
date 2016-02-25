@@ -65,4 +65,25 @@ function test_observers()
   @test big_alloc == false #should not be called
 end
 
+#parallel
+function test_par_observers(nthreads=3)
+  obs = Observer()
+
+  logger = Any[]
+  f1(x) = push!(logger, "id=$(myid()), thr=$(x[1]), x=$(x[2])")
+  add_observer(obs, f1)
+
+  pmap(1:nthreads) do thr
+    testinner(obs, thr)
+  end
+
+  logger
+end
+
+function testinner(obs::Observer, thr::Int64)
+  for i = 10:15
+    @notify_observer_default(obs, [thr, i])
+  end
+end
+
 test_observers()

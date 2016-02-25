@@ -94,4 +94,10 @@ export CodeUtils
 include("SwapBuffers.jl")
 export SwapBuffers
 
+include("LogicUtils.jl")
+export LogicUtils
+
+include("Configure.jl")
+export Configure
+
 end #module

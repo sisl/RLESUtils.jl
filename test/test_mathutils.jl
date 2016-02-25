@@ -32,66 +32,27 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module MathUtils
-
-export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, gini_impurity, gini_from_counts
-
+using RLESUtils: MathUtils
+using Base.Test
 using StatsBase
 
-import Base.extrema
+@test gini_impurity([1,1,1]) == 0.0
+@test gini_impurity([2,2]) == 0.0
+@test gini_impurity([3]) == 0.0
+@test gini_impurity(Int64[]) == 0.0
 
-function extrema{T}(A::Array{T,2}, dim)
-  mapslices(A, dim) do x
-    extrema(x)
-  end
-end
+v1 = [1,1,2,3]
+v2 = [1,2]
+g1 = 0.625
+g2 = 0.5
+@test gini_impurity(v1) == 1.0 - sumabs2(proportions(v1)) == g1
+@test gini_impurity(v2) == 1.0 - sumabs2(proportions(v2)) == g2
+@test_approx_eq_eps gini_impurity(v1, v2) 4/6*g1 + 2/6*g2 1e6
 
-function scale01(x::Real, xmin::Real, xmax::Real)
-  x = min(xmax, max(x, xmin)) #capped to be within [xmin,xmax]
-  return (x - xmin) / (xmax - xmin)
-end
-
-#mods x to the range [-b, b]
-function to_plusminus_b(x::AbstractFloat, b::AbstractFloat)
-  z = mod(x, 2 * b)
-  return (z > b) ? (z - 2 * b) : z
-end
-to_plusminus_pi(x::AbstractFloat) = to_plusminus_b(x, float(pi))
-to_plusminus_180(x::AbstractFloat) = to_plusminus_b(x, 180.0)
-
-function gini_impurity{T}(v::AbstractVector{T})
-  cnts = isempty(v) ? Int64[] : counts(v)
-  gini = gini_from_counts(cnts)
-  gini
-end
-
-function gini_impurity{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
-  cnts1 = isempty(v1) ? Int64[] : counts(v1)
-  cnts2 = isempty(v2) ? Int64[] : counts(v2)
-  gini = gini_from_counts(cnts1, cnts2)
-  gini
-end
-
-function gini_from_counts(cnts::AbstractVector{Int64})
-  N = sum(cnts)
-  if N == 0
-    return gini = 0.0
-  end
-  gini = 1.0 - sumabs2(cnts / N)
-  gini
-end
-
-function gini_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector{Int64})
-  n1 = sum(cnts1)
-  n2 = sum(cnts2)
-  N = n1 + n2
-  if N == 0
-    return gini = 0.0
-  end
-  g1 = gini_from_counts(cnts1)
-  g2 = gini_from_counts(cnts2)
-  gini = (n1 * g1 + n2 * g2) / N
-  gini
-end
-
-end #module
+c1 = [2,1,1]
+c2 = [1,1]
+@test gini_from_counts(Int64[]) == 0.0
+@test gini_from_counts([1,0,0]) == 0.0
+@test gini_from_counts(c1) == g1
+@test gini_from_counts(c2) == g2
+@test_approx_eq_eps gini_from_counts(c1, c2) 4/6*g1 + 2/6*g2 1e6
