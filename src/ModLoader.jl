@@ -32,75 +32,17 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module RLESUtils
+module ModLoader
 
-include("ArrayUtils.jl")
-export ArrayUtils
+export load_to_path
 
-include("ConvertUtils.jl")
-export ConvertUtils
-
-#deprecated
-include("RunCases.jl")
-export RunCases
-
-include("StringUtils.jl")
-export StringUtils
-
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("MemPools.jl")
-export MemPools
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
-
-include("LogicUtils.jl")
-export LogicUtils
-
-include("Configure.jl")
-export Configure
-
-include("ModLoader.jl")
-export ModLoader
+function load_to_path(moduledir::AbstractString)
+  subdirs = readdir(moduledir)
+  map!(x -> abspath(joinpath(moduledir, x)), subdirs)
+  filter!(isdir, subdirs)
+  for subdir in subdirs
+    push!(LOAD_PATH, joinpath(subdir, "src"))
+  end
+end
 
 end #module
