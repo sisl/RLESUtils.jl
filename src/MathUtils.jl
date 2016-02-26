@@ -35,6 +35,7 @@
 module MathUtils
 
 export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, gini_impurity, gini_from_counts
+export SEM_ymax, SEM_ymin
 
 using StatsBase
 
@@ -58,6 +59,14 @@ function to_plusminus_b(x::AbstractFloat, b::AbstractFloat)
 end
 to_plusminus_pi(x::AbstractFloat) = to_plusminus_b(x, float(pi))
 to_plusminus_180(x::AbstractFloat) = to_plusminus_b(x, 180.0)
+
+function SEM_ymax(ys)
+  mean(ys) .+ std(ys) / sqrt(length(ys))
+end
+
+function SEM_ymin(ys)
+  mean(ys) .- std(ys) / sqrt(length(ys))
+end
 
 function gini_impurity{T}(v::AbstractVector{T})
   cnts = isempty(v) ? Int64[] : counts(v)

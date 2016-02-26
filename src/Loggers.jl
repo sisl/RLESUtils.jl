@@ -35,13 +35,13 @@
 module Loggers
 
 export Logger, get_log, empty!, push!,setindex!, getindex, haskey, start, next, done, length,
-      push!_f, append_push!_f, save_log, load_log, keys, values
+      push!_f, append_push!_f, save_log, load_log, keys, values, set!
 export ArrayLogger
 export DataFrameLogger
 export TaggedDFLogger, add_folder!
 
 using DataFrames
-import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, values
+import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, values, append!
 
 abstract Logger
 
@@ -128,7 +128,7 @@ function save_log(file::AbstractString, logger::TaggedDFLogger)
   println(f, "__type__=TaggedDFLogger")
   for (tag, log) in get_log(logger)
     fname = "$(fileroot)_$tag.csv.gz"
-    println(f, "$tag=$fname")
+    println(f, "$tag=$(basename(fname))")
     writetable(fname, log)
   end
   close(f)
@@ -162,6 +162,8 @@ end
 get_log(logger::TaggedDFLogger) = logger.data
 get_log(logger::TaggedDFLogger, tag::AbstractString) = logger.data[tag]
 push!(logger::TaggedDFLogger,tag::AbstractString, x) = push!(logger.data[tag], x)
+set!(logger::TaggedDFLogger, tag::AbstractString, D::DataFrame) = logger.data[tag] = D
+append!(logger::TaggedDFLogger, tag::AbstractString, D::DataFrame) = append!(logger.data[tag], D)
 
 keys(logger::TaggedDFLogger) = keys(logger.data)
 values(logger::TaggedDFLogger) = values(logger.data)
