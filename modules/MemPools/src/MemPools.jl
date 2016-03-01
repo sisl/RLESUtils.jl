@@ -14,7 +14,7 @@ immutable MaxSizeException <: Exception end
 
 type MemPool{T}
   T::Type
-  inventory::Stack{Deque{T}}
+  inventory::Stack{T}
   n_allocs::Int64
   max_allocs::Int64
 end
