@@ -32,36 +32,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils, RNGWrapper
+using RLESUtils, D3Trees
 using Base.Test
 
-function test_rngwrapper()
-  #These should be the same
-  rng = RSG(5)
-  set_global(rng)
-  x = rand(5)
-  set_global(rng)
-  y = rand(5)
-  @test x == y
-
-  #These should be the same but different from above
-  next!(rng)
-  set_global(rng)
-  x1 = rand(5)
-  set_global(rng)
-  y1 = rand(5)
-  @test x != x1 == y1 != y
-
-  #These should be the same
-  rng2 = RSG(4)
-  set_global(rng2)
-  x = rand(5)
-  set_global(rng2)
-  y = rand(5)
-  rng3 = deepcopy(rng2)
-  set_global(rng3)
-  z = rand(5)
-  @test x == y == z
-end
-
-test_rngwrapper()

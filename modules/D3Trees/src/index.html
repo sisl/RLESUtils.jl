@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node square {
+  fill: steelblue;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node {
+  font: 14px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 3000,
+    height = 2200;
+
+var tree = d3.layout.tree()
+    .size([height, width - 160]);
+
+d3.rightAngleDiagonal = function() {
+    var projection = function(d) { return [d.x, d.y]; }
+
+    var path = function(pathData) {
+        return "M" + pathData[0] + ' ' + pathData[1] + " " + pathData[2];
+    }
+
+    function diagonal(diagonalPath, i) {
+        var source = diagonalPath.source,
+            target = diagonalPath.target,
+            midpointX = (source.x + target.x) / 2,
+            midpointY = (source.y + target.y) / 2,
+            pathData = [source, {x: target.x, y: source.y}, target];
+        pathData = pathData.map(projection);
+        return path(pathData)
+    }
+
+    diagonal.projection = function(x) {
+        if (!arguments.length) return projection;
+        projection = x;
+        return diagonal;
+    };
+
+    diagonal.path = function(x) {
+        if (!arguments.length) return path;
+        path = x;
+        return diagonal;
+    };
+    return diagonal;
+}
+
+var diagonal = d3.rightAngleDiagonal()
+//var diagonal = d3.svg.diagonal()
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(30,100)");
+
+
+function nodemouseover(d) {
+    d3.select(this).append("text")
+        .attr("class", "hover")
+        .attr("text-anchor", "middle")
+        .attr('transform', function(d) { return 'translate(0, -8)'; })
+        .each(function(d) {
+          var arr = d.name.split("\\");
+          if (arr != undefined) {
+              for (i = 0; i < arr.length; i++) {
+                  d3.select(this).append("tspan")
+                  .text(arr[i])
+                  .attr("dy", i ? "1.2em" : 0)
+                  .attr("x", 10)
+                  .attr("text-anchor", "start")
+                  .attr("class", "tspan" + i);
+              }
+          }
+      });
+}
+
+
+function linkmouseover(d) {
+    d3.select(this).append("text")
+        .attr("class", "hover")
+        .attr("text-anchor", "middle")
+        .attr('transform', function(d) { return 'translate(0, -8)'; })
+        .style("font-size","16px")
+        .attr("x", function(d) {return (d.source.x + d.target.x) / 2; })
+        .attr("y", function(d) {return (d.source.y + d.target.y) / 2; })
+        .attr("text-anchor", "middle")
+        .text(function(d) {
+            return "edgeLabel";
+            });
+}
+
+function mouseout(d) {
+    d3.select(this).select("text.hover").remove();
+}
+
+d3.json("data.json", function(error, root) {
+  if (error) throw error;
+
+  root.x0 = width / 2;
+  root.y0 = 50
+
+  var nodes = tree.nodes(root).map(function(d) {d.y = d.depth * 50; return d}),
+      links = tree.links(nodes);
+
+  var linkg = svg.selectAll(".link")
+      .data(links)
+    .enter().append("g")
+      .attr("class", "link")
+      .on("mouseover", linkmouseover)
+      .on("mouseout", mouseout);
+
+  linkg.append("path")
+      .attr("class", "link")
+      .attr("d", diagonal);
+
+  var node = svg.selectAll(".node")
+      .data(nodes)
+
+  var nodeEnter = node.enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .on("mouseover", nodemouseover)
+      .on("mouseout", mouseout)
+      .append("path")
+        .attr("d", d3.svg.symbol()
+            .type(function(d) {
+                    return "square";
+        }))
+      .attr("style", function(d) {
+          if (d.hasOwnProperty('color'))
+              return "fill:" + d.color;
+          else
+              return "fill: steelblue";
+      });
+
+});
+
+d3.select(self.frameElement).style("height", height + "px");
+
+</script>

@@ -32,36 +32,89 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils, RNGWrapper
-using Base.Test
+"""
+Traverses a JSON object (representing a tree), i.e., output from TreeToJSON.jl,
+and plots it to TEX/PDF using TikzQTrees latex package.
+"""
+module TikzQTrees
 
-function test_rngwrapper()
-  #These should be the same
-  rng = RSG(5)
-  set_global(rng)
-  x = rand(5)
-  set_global(rng)
-  y = rand(5)
-  @test x == y
+export plottree, JDict
 
-  #These should be the same but different from above
-  next!(rng)
-  set_global(rng)
-  x1 = rand(5)
-  set_global(rng)
-  y1 = rand(5)
-  @test x != x1 == y1 != y
+using RLESUtils, LatexUtils
+using TikzPictures
+using JSON
 
-  #These should be the same
-  rng2 = RSG(4)
-  set_global(rng2)
-  x = rand(5)
-  set_global(rng2)
-  y = rand(5)
-  rng3 = deepcopy(rng2)
-  set_global(rng3)
-  z = rand(5)
-  @test x == y == z
+typealias JDict Dict{AbstractString,Any}
+
+function print_element!(io::IOBuffer, d::JDict)
+  name = d["name"] |> escape_latex
+  println(io, "[.{$name}")
+  for (i, child) in enumerate(d["children"])
+    if haskey(d, "edgeLabel")
+      edge_label = d["edgeLabel"][i]
+      print(io, "\\edge node[draw=none,bottom color=orange!25]{$(edge_label)}; ")
+    end
+    print_element!(io, child)
+  end
+  print(io, "]")
 end
 
-test_rngwrapper()
+"""
+Takes a json file as input and writes tex/pdf TikzQTree output.
+"""
+function plottree(filename::AbstractString;
+                  outfileroot::AbstractString="qtree",
+                  output::AbstractString="TEXPDF")
+  f = open(filename, "r")
+  d = JSON.parse(f)
+  close(f)
+  plottree(d, outfileroot=outfileroot, output=output)
+end
+
+"""
+Takes a json-style dict as input and writes tex/pdf TikzQTree output.
+"""
+function plottree(d::JDict;
+                  outfileroot::AbstractString="qtree",
+                  output::AbstractString="TEXPDF")
+  preamble = "\\usepackage{tikz-qtree}
+\\usetikzlibrary{shadows,trees}
+\\tikzset{
+edge from parent fork down,
+level distance=4cm,
+every node/.style=
+    {top color=white,
+    bottom color=blue!25,
+    rectangle,rounded corners,
+    minimum height=8mm,
+    draw=blue!75,
+    very thick,
+    drop shadow,
+    align=center,
+    text depth = 0pt
+    },
+edge from parent/.style=
+    {draw=blue!50,
+    thick
+    }}"
+  io = IOBuffer()
+  print(io, "\\Tree ")
+  print_element!(io, d)
+  println(io, ";")
+
+  tp = TikzPicture(takebuf_string(io), preamble=preamble)
+  if output == "TEXPDF"
+    save(PDF(outfileroot), tp)
+    save(TEX(outfileroot), tp)
+  elseif output == "PDF"
+    save(PDF(outfileroot), tp)
+  elseif output == "TEX"
+    save(TEX(outfileroot), tp)
+  else
+    error("Unrecognized output type")
+  end
+  return tp
+end
+
+end #module
+

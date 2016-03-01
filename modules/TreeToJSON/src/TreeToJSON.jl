@@ -32,36 +32,77 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils, RNGWrapper
-using Base.Test
+"""
+Depth-first traverse over a tree and writes to a JSON file.  Interaction is generic, based on callbacks.
+name=get_name(node), iterable(edgename,childnode)=get_chidren(node),depth=get_depth(node).
+Usage:
+Populate the callbacks into VisCalls and pass root node into write_json (output to file) or
+to_jdict (output to dict)
+"""
+module TreeToJSON
 
-function test_rngwrapper()
-  #These should be the same
-  rng = RSG(5)
-  set_global(rng)
-  x = rand(5)
-  set_global(rng)
-  y = rand(5)
-  @test x == y
+export to_jdict, write_json, VisCalls, JDict
 
-  #These should be the same but different from above
-  next!(rng)
-  set_global(rng)
-  x1 = rand(5)
-  set_global(rng)
-  y1 = rand(5)
-  @test x != x1 == y1 != y
+using JSON
 
-  #These should be the same
-  rng2 = RSG(4)
-  set_global(rng2)
-  x = rand(5)
-  set_global(rng2)
-  y = rand(5)
-  rng3 = deepcopy(rng2)
-  set_global(rng3)
-  z = rand(5)
-  @test x == y == z
+typealias JDict Dict{AbstractString,Any}
+
+type VisCalls
+  get_name::Function #name = get_name(node)
+  get_children::Function #get_children(node) give iterable of (edgelabel, child)
+  get_depth::Nullable{Function}
 end
 
-test_rngwrapper()
+function VisCalls(get_name::Function, get_children::Function)
+  return VisCalls(get_name, get_children, Nullable{Function}())
+end
+
+function VisCalls(get_name::Function, get_children::Function, get_depth::Function)
+  return VisCalls(get_name, get_children, Nullable{Function}(get_depth))
+end
+
+"""
+Like to_jdict except writes output to json file.
+"""
+function write_json(treeroot, vc::VisCalls, filename::AbstractString="treeview.json";
+                    kvs...)
+  d = to_jdict(treeroot, vc, kvs...)
+  f = open(filename, "w")
+  JSON.print(f, d)
+  close(f)
+  return filename::AbstractString
+end
+
+"""
+Depth-first traverse over tree and output to json object.  Input the root node and the callbacks.
+Keyword arguments are mapped to additional "user" fields in the json, the value should be a callback
+function of the f(node).
+For example: write_json(tree.root, f, height=get_height, color=get_color)
+"""
+function to_jdict(treeroot, vc::VisCalls; kvs...)
+  userfields = Dict{ASCIIString,Function}()
+  for (k, f) in kvs
+    userfields[string(k)] = f
+  end
+  return process(treeroot, vc, userfields, 0)::JDict
+end
+
+function process(node, vc::VisCalls, userfields::Dict{ASCIIString,Function}, depth::Int64)
+  d = JDict()
+  d["name"] = vc.get_name(node)
+  d["depth"] = !isnull(vc.get_depth) ? get(vc.get_depth)(node) : depth
+
+  for (k, f) in userfields
+    d[k] = f(node)
+  end
+
+  d["edgeLabel"] = ASCIIString[]
+  d["children"] = JDict[]
+  for (edgelabel, child) in vc.get_children(node)
+    push!(d["edgeLabel"], string(edgelabel))
+    push!(d["children"], process(child, vc, userfields, depth + 1))
+  end
+  return d::JDict
+end
+
+end #module

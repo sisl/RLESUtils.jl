@@ -36,7 +36,7 @@ module RunUtils
 
 export parallel_include
 
-using ..FileUtils
+using RLESUtils, FileUtils
 
 #parallel spawn different processes
 function parallel_include(files::AbstractString...)

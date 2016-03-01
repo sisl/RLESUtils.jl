@@ -30,38 +30,85 @@
 # HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# *****************************************************************************
 
-using RLESUtils, RNGWrapper
-using Base.Test
+module D3Trees
 
-function test_rngwrapper()
-  #These should be the same
-  rng = RSG(5)
-  set_global(rng)
-  x = rand(5)
-  set_global(rng)
-  y = rand(5)
-  @test x == y
+export plottree, openbrowser, plotcollection
 
-  #These should be the same but different from above
-  next!(rng)
-  set_global(rng)
-  x1 = rand(5)
-  set_global(rng)
-  y1 = rand(5)
-  @test x != x1 == y1 != y
+using JSON, GZip
 
-  #These should be the same
-  rng2 = RSG(4)
-  set_global(rng2)
-  x = rand(5)
-  set_global(rng2)
-  y = rand(5)
-  rng3 = deepcopy(rng2)
-  set_global(rng3)
-  z = rand(5)
-  @test x == y == z
+const DIR = dirname(@__FILE__)
+const HTML = joinpath(DIR, "index.html")
+const DST = joinpath(DIR, "data.json")
+
+function plottree(d::Dict{AbstractString,Any}, openviewer::Bool=false;
+                  python_version::Int64=3)
+  open(DST, "w") do f
+    JSON.print(f, d)
+  end
+  if openviewer
+    startserver(python_version=python_version)
+    openbrowser()
+  end
 end
 
-test_rngwrapper()
+function plottree(file::AbstractString, openviewer::Bool=false;
+                  python_version::Int64=3)
+  #cp the json file to local directory
+  cp(file, DST, remove_destination=true)
+  if openviewer
+    startserver(python_version=python_version)
+    openbrowser()
+  end
+end
+
+function plotcollection(file::AbstractString; python_version::Int64=3)
+  D = if endswith(file, ".json")
+    open(file) do f
+      JSON.parse(f)
+    end
+  elseif endswith(file, ".gz")
+    GZip.open(file) do f
+      JSON.parse(f)
+    end
+  else
+    error("Extension not recognized")
+  end
+  startserver(python_version=python_version)
+  for d in D
+    open(DST, "w") do f
+      JSON.print(f, d)
+    end
+    openbrowser()
+  end
+end
+
+function startserver(; python_version::Int64=3, delay::Float64=0.5)
+  currentdir = pwd()
+  cd(DIR)
+  #start a local python server
+  started = if python_version == 3
+    success(`cmd /c start python -m http.server 8888 &`)
+  elseif python_version == 2
+    success(`cmd /c start python -m http.server 8888 &`) #this isn't right...
+  else
+    error("python version not recognized: $(python_version)")
+  end
+  cd(currentdir)
+  sleep(delay)
+end
+
+#windows only!
+function openbrowser(; delay::Float64=0.5)
+  currentdir = pwd()
+  cd(DIR)
+  #start a browser and point it at HTML
+  success(`cmd /c start http://localhost:8888/index.html`)
+  cd(currentdir)
+  sleep(delay)
+end
+
+end # module
+
+#TODO: cleanup open processes
+#TODO: only works on windows

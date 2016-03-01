@@ -44,7 +44,7 @@ export get, start, done, next, length
 import Base: get, start, done, next, length
 
 using Iterators
-using ..ConvertUtils #parent of RunCases
+using RLESUtils, ConvertUtils #parent of RunCases
 
 type Case
   data::Dict{ASCIIString,Any}

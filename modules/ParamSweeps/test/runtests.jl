@@ -33,6 +33,7 @@
 # *****************************************************************************
 
 using RLESUtils, ParamSweeps
+using Base.Test
 
 function myfunction(x1, x2; verbose=false)
   verbose && println("x1=$x1, x2=$x2")
@@ -54,4 +55,4 @@ end
 script = KWParamSweep(myfunction2, x1=[1, 2, 3], x2=[4, 5, 6])
 result = run(script)
 
-@test result == [5, 6, 7, 6, 8, 7, 8, 9]
+@test result == [5, 6, 7, 6, 7, 8, 7, 8, 9]
