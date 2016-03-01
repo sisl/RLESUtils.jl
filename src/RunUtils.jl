@@ -32,81 +32,23 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module MathUtils
+module RunUtils
 
-export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, gini_impurity, gini_from_counts
-export SEM_ymax, SEM_ymin
+export parallel_include
 
-using StatsBase
+using ..FileUtils
 
-import Base.extrema
-
-function extrema{T}(A::Array{T,2}, dim)
-  mapslices(A, dim) do x
-    extrema(x)
+#parallel spawn different processes
+function parallel_include(files::AbstractString...)
+  pmap(files) do f
+    success(`julia $f`)
   end
 end
 
-function scale01(x::Real, xmin::Real, xmax::Real)
-  x = min(xmax, max(x, xmin)) #capped to be within [xmin,xmax]
-  return (x - xmin) / (xmax - xmin)
-end
-
-#mods x to the range [-b, b]
-function to_plusminus_b(x::AbstractFloat, b::AbstractFloat)
-  z = mod(x, 2 * b)
-  return (z > b) ? (z - 2 * b) : z
-end
-to_plusminus_pi(x::AbstractFloat) = to_plusminus_b(x, float(pi))
-to_plusminus_180(x::AbstractFloat) = to_plusminus_b(x, 180.0)
-
-function quantize(x::FloatingPoint, b::FloatingPoint)
-  # quantize x to the nearest multiple of b
-  d, r = divrem(x, b)
-  return b * (d + round(r / b))
-end
-
-function SEM_ymax(ys)
-  mean(ys) .+ std(ys) / sqrt(length(ys))
-end
-
-function SEM_ymin(ys)
-  mean(ys) .- std(ys) / sqrt(length(ys))
-end
-
-function gini_impurity{T}(v::AbstractVector{T})
-  cnts = isempty(v) ? Int64[] : counts(v)
-  gini = gini_from_counts(cnts)
-  gini
-end
-
-function gini_impurity{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
-  cnts1 = isempty(v1) ? Int64[] : counts(v1)
-  cnts2 = isempty(v2) ? Int64[] : counts(v2)
-  gini = gini_from_counts(cnts1, cnts2)
-  gini
-end
-
-function gini_from_counts(cnts::AbstractVector{Int64})
-  N = sum(cnts)
-  if N == 0
-    return gini = 0.0
-  end
-  gini = 1.0 - sumabs2(cnts / N)
-  gini
-end
-
-function gini_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector{Int64})
-  n1 = sum(cnts1)
-  n2 = sum(cnts2)
-  N = n1 + n2
-  if N == 0
-    return gini = 0.0
-  end
-  g1 = gini_from_counts(cnts1)
-  g2 = gini_from_counts(cnts2)
-  gini = (n1 * g1 + n2 * g2) / N
-  gini
+parallel_include{T}(files::Vector{T}) = parallel_include(files...)
+function parallel_include(dir::AbstractString=".")
+  files = readdir_ext(".jl", dir)
+  return parallel_include(files)
 end
 
 end #module

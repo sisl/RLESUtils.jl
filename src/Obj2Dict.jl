@@ -41,16 +41,17 @@ module Obj2Dict
 
 import Base.convert
 using JSON
+using DataStructures
 using ..StringUtils
 
-typealias ObjDict Dict{String, Any}
-typealias Primitive Union(Integer, Real, String, Symbol, Nothing)
+typealias ObjDict Dict{AbstractString, Any}
+typealias Primitive Union{Integer, Real, AbstractString, Symbol, Void}
 
 function to_dict(x)
   d = ObjDict()
   d["type"] = string(typeof(x))
   d["data"] = ObjDict()
-  for sym in names(x)
+  for sym in fieldnames(x)
     d["data"][string(sym)] = to_dict(x.(sym))
   end
   return d
@@ -64,8 +65,16 @@ function to_dict(x::Primitive)
 end
 
 function to_dict(x::Array)
-  d = ObjDict()
-  map(to_dict, x)
+  if isempty(x)
+    out = Any[]
+    for i = 1:ndims(x) - 1
+      out = Any[out]
+    end
+    return out
+  else
+    d = ObjDict()
+    return map(to_dict, x)
+  end
 end
 
 function to_dict(x::Dict)
@@ -85,8 +94,23 @@ function to_dict(x::Expr)
   return d
 end
 
+function to_dict(x::Function)
+  #warn("Function excluded in Obj2Dict") #drop silently or verbosely?
+  d = ObjDict()
+  d["type"] = string(Function)
+  d["data"] = 0 #not supported at the moment
+  return d
+end
+
+function to_dict{T}(x::Stack{Deque{T}})
+  d = ObjDict()
+  d["type"] = string(typeof(x))
+  d["data"] = convert(Array, x)
+  return d
+end
+
 function set_fields!(x, d::ObjDict; verbose::Bool=true)
-  for sym in names(x)
+  for sym in fieldnames(x)
     if haskey(d["data"], string(sym))
       x.(sym) = to_obj(d["data"][string(sym)])
     elseif verbose
@@ -116,6 +140,10 @@ function to_obj(d::ObjDict)
       x = convert(T, d["data"])
     elseif issubtype(T, Expr)
       x = parse(d["data"])
+    elseif issubtype(T, Function) #functions not supported, but still handle gracefully
+      x = () -> error("Obj2Dict: Function was stripped")
+    elseif  issubtype(T, Stack)
+      x = convert(Stack, d["data"])
     else
       x = to_datatype(T, d)
     end
@@ -141,7 +169,7 @@ function to_datatype(T, d::ObjDict)
   catch
     try
       #try struct-style default constructor
-      fields = map(field -> to_obj(d["data"][string(field)]), names(T))
+      fields = map(field -> to_obj(d["data"][string(field)]), fieldnames(T))
       x = T(fields...)
     catch e
       println("exception $e")
@@ -151,7 +179,7 @@ function to_datatype(T, d::ObjDict)
   return x
 end
 
-function save_obj(file::String, x)
+function save_obj(file::AbstractString, x)
   f = open(file, "w")
   d = to_dict(x)
   JSON.print(f, d)
@@ -159,21 +187,41 @@ function save_obj(file::String, x)
   return file
 end
 
-function load_obj(file::String)
+function load_dict(file::AbstractString)
   f = open(file, "r")
   d = JSON.parse(f)
-  x = Obj2Dict.to_obj(d)
   close(f)
+  return d
+end
+
+function load_obj(file::AbstractString)
+  d = load_dict(file)
+  x = Obj2Dict.to_obj(d)
   return x
 end
 
 #workaround for JSON limitation that cannot recover 2D arrays.  They get recovered
 #to vector of vector
-convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{T,1},1}) = hcat(x...)
-convert{T<:Any}(::Type{Array{T,2}}, x::Array{Array{None,1},1}) = Array(T, 0, 0)
+convert{T}(::Type{Array{T,2}}, x::Array{Array{T,1},1}) = hcat(x...)
+convert{T}(::Type{Array{T,2}}, x::Array{Array{Union{},1},1}) = Array(T, 0, 0)
+convert{T}(::Type{Stack{Deque{T}}}) = Stack(T)
 
-#these will be deprecated in 0.4
-convert(::Type{Int64}, x::ASCIIString) = int64(x)
-convert(::Type{Float64}, x::ASCIIString) = float64(x)
+function convert{T}(::Type{Array}, S::Stack{Deque{T}})
+  S_copy = deepcopy(S)
+  v = T[]
+  while !isempty(S_copy)
+    push!(v, pop!(S_copy))
+  end
+  return v
+end
+
+function convert{T}(::Type{Stack}, v::Vector{T})
+  v_copy = deepcopy(v)
+  S = Stack(T)
+  while !isempty(v_copy)
+    push!(S, pop!(v_copy))
+  end
+  return S
+end
 
 end #module

@@ -34,18 +34,27 @@
 
 module RLESUtils
 
+include("ArrayUtils.jl")
+export ArrayUtils
+
+include("ConvertUtils.jl")
+export ConvertUtils
+
+#deprecated
 include("RunCases.jl")
 export RunCases
 
 include("StringUtils.jl")
 export StringUtils
 
+#will probably be deprecated...
 include("Obj2Dict.jl")
 export Obj2Dict
 
 include("FileUtils.jl")
 export FileUtils
 
+#deprecated
 include("LookupCallbacks.jl")
 export LookupCallbacks
 
@@ -58,13 +67,40 @@ export GitUtils
 include("LatexUtils.jl")
 export LatexUtils
 
-include("DataFramesUtils.jl")
-export DataFramesUtils
-
-include("TypeUtils.jl")
-export TypeUtils
-
 include("RNGWrapper.jl")
 export RNGWrapper
+
+include("Observers.jl")
+export Observers
+
+include("Loggers.jl")
+export Loggers
+
+include("ParamSweeps.jl")
+export ParamSweeps
+
+include("RunUtils.jl")
+export RunUtils
+
+include("Vectorizer.jl")
+export Vectorizer
+
+include("MemPools.jl")
+export MemPools
+
+include("CodeUtils.jl")
+export CodeUtils
+
+include("SwapBuffers.jl")
+export SwapBuffers
+
+include("LogicUtils.jl")
+export LogicUtils
+
+include("Configure.jl")
+export Configure
+
+include("ModLoader.jl")
+export ModLoader
 
 end #module

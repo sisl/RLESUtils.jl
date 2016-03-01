@@ -34,14 +34,16 @@
 
 module StringUtils
 
+export hamming, balanced_paren, capitalize_first, dump2string, @printeval
 import Base: bool, convert
-
-export hamming
 
 const TRUES = ASCIIString["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
 const FALSES = ASCIIString["FALSE", "F", "-1", "0", "0.0", "NEG", "NEGATIVE"]
 
-function hamming(s1::String, s2::String)
+convert(::Type{Bool}, s::AbstractString) = bool(s)
+convert(::Type{Int64}, s::AbstractString) = parse(Int64, s)
+
+function hamming(s1::AbstractString, s2::AbstractString)
   x = collect(s1)
   y = collect(s2)
   minlen = min(length(x), length(y))
@@ -49,7 +51,7 @@ function hamming(s1::String, s2::String)
   return sum(x[1:minlen] .!= y[1:minlen]) + len_diff
 end
 
-function bool(s::String)
+function bool(s::AbstractString)
   s = uppercase(s)
   if in(s, TRUES)
     return true
@@ -60,6 +62,43 @@ function bool(s::String)
   end
 end
 
-convert(::Type{Bool}, s::String) = bool(s)
+#returns the index of the corresponding closing parenthesis
+#start_index = index of open parenthesis
+function balanced_paren(s::AbstractString, start_index::Int64,
+                        open_char::Char='(', close_char::Char=')')
+  if s[start_index] != open_char
+    warn("balanced_paren: start_index not pointing to open_char")
+    return 0
+  end
+  num_open = 0
+  for i = start_index:length(s)
+    if s[i] == open_char
+      num_open += 1
+    elseif s[i] == close_char
+      num_open -= 1
+    end
+    if num_open <= 0
+      return i
+    end
+  end
+  return 0
+end
+
+capitalize_first(s::AbstractString) = string(uppercase(s[1]), s[2:end])
+
+function dump2string(x)
+  io = IOBuffer()
+  dump(io, x)
+  return takebuf_string(io)
+end
+
+macro printeval(line)
+  p = :(println($(sprint(Base.show_unquoted, line))))
+  ex = quote
+    $p
+    $(esc(line))
+  end
+  return ex
+end
 
 end #module

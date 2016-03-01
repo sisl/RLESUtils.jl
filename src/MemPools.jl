@@ -32,81 +32,58 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module MathUtils
+#memory pool, preallocate a collection of objects, checkout from pool and checkin when done
+#dynamically allocate more until max_allocs
+module MemPools
 
-export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, gini_impurity, gini_from_counts
-export SEM_ymax, SEM_ymin
+export MemPool, checkin, checkout
 
-using StatsBase
+import Base: length, eltype
 
-import Base.extrema
+using DataStructures
 
-function extrema{T}(A::Array{T,2}, dim)
-  mapslices(A, dim) do x
-    extrema(x)
+immutable MaxSizeException <: Exception end
+
+type MemPool{T}
+  T::Type
+  inventory::Stack{Deque{T}}
+  n_allocs::Int64
+  max_allocs::Int64
+end
+
+function MemPool(T::Type, init_allocs::Int64, max_allocs::Int64)
+  rental = MemPool(T, Stack(T), 0, max_allocs)
+  allocate!(rental, init_allocs)
+  return rental
+end
+
+function checkout{T}(rental::MemPool{T})
+  if isempty(rental.inventory)
+    return allocate(rental)
+  else
+    return pop!(rental.inventory)
   end
 end
 
-function scale01(x::Real, xmin::Real, xmax::Real)
-  x = min(xmax, max(x, xmin)) #capped to be within [xmin,xmax]
-  return (x - xmin) / (xmax - xmin)
+function checkin{T}(rental::MemPool{T}, obj::T)
+  push!(rental.inventory, obj)
 end
 
-#mods x to the range [-b, b]
-function to_plusminus_b(x::AbstractFloat, b::AbstractFloat)
-  z = mod(x, 2 * b)
-  return (z > b) ? (z - 2 * b) : z
-end
-to_plusminus_pi(x::AbstractFloat) = to_plusminus_b(x, float(pi))
-to_plusminus_180(x::AbstractFloat) = to_plusminus_b(x, 180.0)
+length{T}(rental::MemPool{T}) = length(rental.inventory)
+eltype{T}(rental::MemPool{T}) = T
 
-function quantize(x::FloatingPoint, b::FloatingPoint)
-  # quantize x to the nearest multiple of b
-  d, r = divrem(x, b)
-  return b * (d + round(r / b))
-end
-
-function SEM_ymax(ys)
-  mean(ys) .+ std(ys) / sqrt(length(ys))
-end
-
-function SEM_ymin(ys)
-  mean(ys) .- std(ys) / sqrt(length(ys))
-end
-
-function gini_impurity{T}(v::AbstractVector{T})
-  cnts = isempty(v) ? Int64[] : counts(v)
-  gini = gini_from_counts(cnts)
-  gini
-end
-
-function gini_impurity{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
-  cnts1 = isempty(v1) ? Int64[] : counts(v1)
-  cnts2 = isempty(v2) ? Int64[] : counts(v2)
-  gini = gini_from_counts(cnts1, cnts2)
-  gini
-end
-
-function gini_from_counts(cnts::AbstractVector{Int64})
-  N = sum(cnts)
-  if N == 0
-    return gini = 0.0
+function allocate!{T}(rental::MemPool{T}, N::Int64)
+  for i = 1:N
+    push!(rental.inventory, allocate(rental))
   end
-  gini = 1.0 - sumabs2(cnts / N)
-  gini
 end
 
-function gini_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector{Int64})
-  n1 = sum(cnts1)
-  n2 = sum(cnts2)
-  N = n1 + n2
-  if N == 0
-    return gini = 0.0
+function allocate{T}(rental::MemPool{T})
+  if rental.n_allocs >= rental.max_allocs
+    throw(MaxSizeException())
   end
-  g1 = gini_from_counts(cnts1)
-  g2 = gini_from_counts(cnts2)
-  gini = (n1 * g1 + n2 * g2) / N
-  gini
+  rental.n_allocs += 1
+  return rental.T()
 end
 
 end #module

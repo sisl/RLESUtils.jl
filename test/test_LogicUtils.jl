@@ -32,10 +32,22 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module TypeUtils
+using RLESUtils: LogicUtils, StringUtils
+using Base.Test
 
-export get_vec_type
+v1 = rand(Bool, 50);
+v2 = rand(Bool, 50);
+@printeval @time r1 = v1 & v2;
+@printeval @time r2 = and!(v1, v2);
+@test r1 == r2
 
-get_vec_type{T}(x::Vector{T}) = T
+v1 = rand(Bool, 50);
+v2 = rand(Bool, 50);
+@printeval @time r1 = v1 | v2;
+@printeval @time r2 = or!(v1, v2);
+@test r1 == r2
 
-end #module
+v1 = rand(Bool, 50);
+@printeval @time r1 = !v1;
+@printeval @time r2 = not!(v1);
+@test r1 == r2

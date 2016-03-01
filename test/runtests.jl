@@ -35,3 +35,6 @@
 include("test_runcases.jl")
 include("test_obj2dict.jl")
 include("test_rngwrapper.jl")
+include("test_observers.jl")
+include("test_stringutils.jl")
+include("test_arrayutils.jl")

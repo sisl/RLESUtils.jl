@@ -32,81 +32,58 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module MathUtils
+using RLESUtils.Observers
+using Base.Test
 
-export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, gini_impurity, gini_from_counts
-export SEM_ymax, SEM_ymin
+function test_observers()
+  obs = Observer()
 
-using StatsBase
+  logger = Any[]
+  f1(x) = push!(logger, "f1($x)")
+  f2(x) = push!(logger, "f2($x)")
+  f3(x) = push!(logger, "f3($x)")
 
-import Base.extrema
+  add_observer(obs, f1)
+  add_observer(obs, f2)
+  @notify_observer_default(obs, 1)
+  @test logger == ["f1(1)", "f2(1)"]
+  empty!(logger)
 
-function extrema{T}(A::Array{T,2}, dim)
-  mapslices(A, dim) do x
-    extrema(x)
+  add_observer(obs, "x", f3)
+  @notify_observer(obs, "x", 2)
+  @test logger == ["f3(2)"]
+  empty!(logger)
+
+  empty!(obs)
+  @notify_observer(obs, "x", 5)
+  @test isempty(logger)
+
+  empty!(obs)
+  big_alloc = false
+  make_big_alloc() = big_alloc = true
+  @notify_observer_default(obs, make_big_alloc())
+  @test big_alloc == false #should not be called
+end
+
+#parallel
+function test_par_observers(nthreads=3)
+  obs = Observer()
+
+  logger = Any[]
+  f1(x) = push!(logger, "id=$(myid()), thr=$(x[1]), x=$(x[2])")
+  add_observer(obs, f1)
+
+  pmap(1:nthreads) do thr
+    testinner(obs, thr)
+  end
+
+  logger
+end
+
+function testinner(obs::Observer, thr::Int64)
+  for i = 10:15
+    @notify_observer_default(obs, [thr, i])
   end
 end
 
-function scale01(x::Real, xmin::Real, xmax::Real)
-  x = min(xmax, max(x, xmin)) #capped to be within [xmin,xmax]
-  return (x - xmin) / (xmax - xmin)
-end
-
-#mods x to the range [-b, b]
-function to_plusminus_b(x::AbstractFloat, b::AbstractFloat)
-  z = mod(x, 2 * b)
-  return (z > b) ? (z - 2 * b) : z
-end
-to_plusminus_pi(x::AbstractFloat) = to_plusminus_b(x, float(pi))
-to_plusminus_180(x::AbstractFloat) = to_plusminus_b(x, 180.0)
-
-function quantize(x::FloatingPoint, b::FloatingPoint)
-  # quantize x to the nearest multiple of b
-  d, r = divrem(x, b)
-  return b * (d + round(r / b))
-end
-
-function SEM_ymax(ys)
-  mean(ys) .+ std(ys) / sqrt(length(ys))
-end
-
-function SEM_ymin(ys)
-  mean(ys) .- std(ys) / sqrt(length(ys))
-end
-
-function gini_impurity{T}(v::AbstractVector{T})
-  cnts = isempty(v) ? Int64[] : counts(v)
-  gini = gini_from_counts(cnts)
-  gini
-end
-
-function gini_impurity{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
-  cnts1 = isempty(v1) ? Int64[] : counts(v1)
-  cnts2 = isempty(v2) ? Int64[] : counts(v2)
-  gini = gini_from_counts(cnts1, cnts2)
-  gini
-end
-
-function gini_from_counts(cnts::AbstractVector{Int64})
-  N = sum(cnts)
-  if N == 0
-    return gini = 0.0
-  end
-  gini = 1.0 - sumabs2(cnts / N)
-  gini
-end
-
-function gini_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector{Int64})
-  n1 = sum(cnts1)
-  n2 = sum(cnts2)
-  N = n1 + n2
-  if N == 0
-    return gini = 0.0
-  end
-  g1 = gini_from_counts(cnts1)
-  g2 = gini_from_counts(cnts2)
-  gini = (n1 * g1 + n2 * g2) / N
-  gini
-end
-
-end #module
+test_observers()

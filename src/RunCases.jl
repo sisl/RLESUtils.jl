@@ -37,15 +37,18 @@
 
 module RunCases
 
-using Iterators
+export Case, Cases, generate_cases, add_field!, get, set!, savecase, loadcase
+export get, start, done, next, length
 
 import Base: get, start, done, next, length
-export Case, Cases, generate_cases, add_field!, get, set!, savecase, loadcase
+
+using Iterators
+using ..ConvertUtils #parent of RunCases
 
 type Case
-  data::Dict{String,Any}
+  data::Dict{ASCIIString,Any}
 end
-Case() = Case(Dict{String, Any}())
+Case() = Case(Dict{ASCIIString, Any}())
 
 type Cases
   data::Vector{Case}
@@ -53,7 +56,7 @@ end
 Cases() = Cases(Case[])
 Cases(case::Case) = Cases([case])
 
-function generate_cases(keyvals::(String, Vector)...)
+function generate_cases{T<:AbstractVector}(keyvals::Pair{ASCIIString, T}...)
   #generates a vector of runcases based on cartesian product of the keyvals together
   #returns Cases
   #FIXME(rlee): This method of using vectors of the parameters uses a lot of space.  Switch it over to storing indices
@@ -62,43 +65,44 @@ function generate_cases(keyvals::(String, Vector)...)
   return Cases([make_case(kvs...) for kvs in product(kv_vec...)])
 end
 
-function add_field!(cases::Cases, field::String, value::Any)
+function add_field!(cases::Cases, field::AbstractString, value::Any)
   map(case -> set!(case, field, value), cases)
 end
 
-function add_field!{T <: String}(cases::Cases, field::String, getval::Function, lookups::Vector{T})
+function add_field!{T<:AbstractString}(cases::Cases, field::AbstractString, getval::Function, lookups::Vector{T})
   map(case -> add_field!(case, field, getval, lookups), cases)
 end
 
-function add_field!{T <: String}(case::Case, field::String, getval::Function, lookups::Vector{T})
+function add_field!{T<:AbstractString}(case::Case, field::AbstractString, getval::Function, lookups::Vector{T})
   # generate value of field dynamically by looking up keys already in the case, then calling callback gettag()
   values = map(l -> get(case, l), lookups)
   set!(case, field, getval(values...))
   return case
 end
 
-function get(case::Case, key::String)
+function get(case::Case, key::AbstractString)
   haskey(case.data, key) ? case.data[key] : nothing
 end
 
-set!(case::Case, key::String, value) = case.data[key] = value
+set!(case::Case, key::AbstractString, value) = case.data[key] = value
 
-function kv_expand(kV::(String, Vector))
+function kv_expand{T<:AbstractVector}(kV::Pair{ASCIIString, T})
   # expand (k, V) to a vector of where each element is (k, V_i)
   k, V = kV
-  return convert(Array{(String,Any)}, map(x -> (k, x), V))
+  tmp = map(v -> (k, v), V)
+  return convert(Vector{Tuple{ASCIIString,Any}}, tmp)
 end
 
-function make_case{S <: String}(kvs::(S, Any)...)
+function make_case{S <: AbstractString}(kvs::Tuple{S, Any}...)
   # take all the (k, V_i) and populate a dict, then feed into Case
-  d = Dict{String, Any}()
+  d = Dict{ASCIIString, Any}()
   for (k, v) in kvs
     d[k] = v
   end
   return Case(d)
 end
 
-function savecase(case::Case, filename::String="case.txt")
+function savecase(case::Case, filename::AbstractString="case.txt")
   f = open(filename, "w")
   for (k, v) in case.data
     println(f, "$k = $v")
@@ -107,7 +111,7 @@ function savecase(case::Case, filename::String="case.txt")
   return filename
 end
 
-function loadcase(filename=String="case.txt")
+function loadcase(filename::AbstractString="case.txt")
   f = open(filename)
   case = Case()
   for line in eachline(f)

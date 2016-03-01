@@ -36,13 +36,14 @@ module LatexUtils
 
 export escape_latex
 
-function escape_latex(s::String)
-  s = replace(s, "\\", "\\\\")
+function escape_latex(s::AbstractString)
   s = replace(s, "_", "\\_")
   s = replace(s, "|", "\$|\$")
   s = replace(s, "<", "\$<\$")
   s = replace(s, ">", "\$>\$")
   s = replace(s, "&", "\\&")
+  s = replace(s, "[", "\$[\$")
+  s = replace(s, "]", "\$]\$")
   return s
 end
 

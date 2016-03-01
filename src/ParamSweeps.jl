@@ -32,81 +32,81 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module MathUtils
+##Usage
+#
+#
+module ParamSweeps
 
-export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, gini_impurity, gini_from_counts
-export SEM_ymax, SEM_ymin
+export ParamSweep, Iterable, run
+export KWParamSweep
 
-using StatsBase
+using Iterators
 
-import Base.extrema
+import Base: empty!, push!, run, start, next, done, keys, values
 
-function extrema{T}(A::Array{T,2}, dim)
-  mapslices(A, dim) do x
-    extrema(x)
+typealias Iterable Any
+
+type ParamSweep
+  f::Function #function to be called
+  argsrc::Vector{Iterable} #vector of iterables, cartesian product will be called on f
+end
+
+ParamSweep(f::Function) = ParamSweep(f, Iterable[])
+function ParamSweep(f::Function, argsrc::Iterable...)
+  script = ParamSweep(f) #this construction avoids infinite recursions caused by Iterable being Any
+  push!(script, argsrc...)
+  return script
+end
+
+function run(script::ParamSweep)
+  map(product(script.argsrc...)) do args
+    script.f(args...)
   end
 end
 
-function scale01(x::Real, xmin::Real, xmax::Real)
-  x = min(xmax, max(x, xmin)) #capped to be within [xmin,xmax]
-  return (x - xmin) / (xmax - xmin)
+push!(script::ParamSweep, iterable::Iterable) = push!(script.argsrc, iterable)
+push!(script::ParamSweep, iterables::Iterable...) = push!(script.argsrc, iterables...)
+empty!(script::ParamSweep) = empty!(script.argsrc)
+
+##########
+
+type KWParamSweep
+  f::Function #function to be called
+  argsrc::Dict{Symbol,Iterable} #keyed iterables, cartesian product will be called on f
 end
 
-#mods x to the range [-b, b]
-function to_plusminus_b(x::AbstractFloat, b::AbstractFloat)
-  z = mod(x, 2 * b)
-  return (z > b) ? (z - 2 * b) : z
-end
-to_plusminus_pi(x::AbstractFloat) = to_plusminus_b(x, float(pi))
-to_plusminus_180(x::AbstractFloat) = to_plusminus_b(x, 180.0)
+KWParamSweep(f::Function) = KWParamSweep(f, Dict{Symbol,Iterable}())
+KWParamSweep(f::Function; kwargs::Iterable...) = KWParamSweep(f, Dict{Symbol,Iterable}(kwargs))
 
-function quantize(x::FloatingPoint, b::FloatingPoint)
-  # quantize x to the nearest multiple of b
-  d, r = divrem(x, b)
-  return b * (d + round(r / b))
-end
-
-function SEM_ymax(ys)
-  mean(ys) .+ std(ys) / sqrt(length(ys))
-end
-
-function SEM_ymin(ys)
-  mean(ys) .- std(ys) / sqrt(length(ys))
-end
-
-function gini_impurity{T}(v::AbstractVector{T})
-  cnts = isempty(v) ? Int64[] : counts(v)
-  gini = gini_from_counts(cnts)
-  gini
-end
-
-function gini_impurity{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
-  cnts1 = isempty(v1) ? Int64[] : counts(v1)
-  cnts2 = isempty(v2) ? Int64[] : counts(v2)
-  gini = gini_from_counts(cnts1, cnts2)
-  gini
-end
-
-function gini_from_counts(cnts::AbstractVector{Int64})
-  N = sum(cnts)
-  if N == 0
-    return gini = 0.0
+function run(script::KWParamSweep)
+  map(script) do kwargs
+    script.f(; kwargs...)
   end
-  gini = 1.0 - sumabs2(cnts / N)
-  gini
 end
 
-function gini_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector{Int64})
-  n1 = sum(cnts1)
-  n2 = sum(cnts2)
-  N = n1 + n2
-  if N == 0
-    return gini = 0.0
-  end
-  g1 = gini_from_counts(cnts1)
-  g2 = gini_from_counts(cnts2)
-  gini = (n1 * g1 + n2 * g2) / N
-  gini
+#incremental build of param iterables
+push!(script::KWParamSweep, key::Symbol, iterable::Iterable) = script.argsrc[key] = iterable
+empty!(script::KWParamSweep) = empty!(script.argsrc)
+
+type KWIteratorState
+  it
+  state
 end
+
+function start(script::KWParamSweep)
+  it = product(values(script.argsrc)...)
+  return KWIteratorState(it, start(it))
+end
+
+function next(script::KWParamSweep, s::KWIteratorState)
+  vals, s.state = next(s.it, s.state)
+  x = collect(zip(keys(script), vals))
+  return x, s
+end
+
+done(script::KWParamSweep, s::KWIteratorState) = done(s.it, s.state)
+
+keys(script::KWParamSweep) = keys(script.argsrc)
+values(script::KWParamSweep) = values(script.argsrc)
 
 end #module

@@ -34,17 +34,47 @@
 
 module FileUtils
 
-export readdir_ext
+export readdir_ext, readdir_dir, textfile, filenamefriendly
 
-function readdir_ext(ext::String, dir::String=".")
-  if ext[1] != '.'
-    ext = string(".", ext) #prepend the . if it's not already there
-  end
+#readdir and filter for ext
+function readdir_ext(ext::AbstractString, dir::AbstractString=".")
   files = readdir(dir)
   files = convert(Vector{ASCIIString}, files)
-  filter!(f -> splitext(f)[2] == ext, files)
+  filter!(f -> endswith(f, ext), files)
   map!(f -> joinpath(dir, f), files)
   return files
+end
+
+#readdir and filter for directories only
+function readdir_dir(dir::AbstractString=".")
+  fs = readdir(dir)
+  fs = convert(Vector{ASCIIString}, fs)
+  map!(f -> joinpath(dir, f), fs)
+  filter!(isdir, fs)
+  return fs
+end
+
+#fast way to make a textfile that outputs each arg and kwarg to a line
+function textfile(file::AbstractString, args...; kwargs...)
+  open(file, "w") do f
+    for x in args
+      println(f, x)
+    end
+    for (k, v) in kwargs
+      println(f, k, "=", v)
+    end
+  end
+end
+
+#make string filesystem friendly
+function filenamefriendly(s::AbstractString)
+  s = replace(s, "[", "")
+  s = replace(s, "]", "")
+  s = replace(s, "(", "")
+  s = replace(s, ")", "")
+  s = replace(s, ":", "")
+  s = replace(s, ",", "")
+  s
 end
 
 end #module
