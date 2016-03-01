@@ -33,12 +33,4 @@
 # *****************************************************************************
 
 using RLESUtils
-using Base.Test
-
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
-
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
-end
+using GitUtils

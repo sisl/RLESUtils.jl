@@ -32,13 +32,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, ArrayUtils
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+x1 = [1, 1, 1, 1]
+x2 = [1, 2, 3, 4]
+x3 = [true, true, true, true]
+x4 = [true, false, true, true]
 
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
-end
+@test elements_equal(x1) == true
+@test elements_equal(x2) == false
+@test elements_equal(x3) == true
+@test elements_equal(x4) == false

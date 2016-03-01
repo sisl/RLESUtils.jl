@@ -32,13 +32,28 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, StringUtils
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+s = "(2345)"
+@test balanced_paren(s, 1) == 6
 
-pkgs = readdir(MODULEDIR)
+s = "(2()5)"
+@test balanced_paren(s, 1) == 6
+@test balanced_paren(s, 3) == 4
 
-for pkg in pkgs
-  RLESUtils.test(pkg)
-end
+s = "(2(45))"
+@test balanced_paren(s, 1) == 7
+@test balanced_paren(s, 3) == 6
+
+s = "1((45)78())"
+@test balanced_paren(s, 2) == 11
+@test balanced_paren(s, 3) == 6
+@test balanced_paren(s, 9) == 10
+
+s = "1[(45)78[]]"
+@test balanced_paren(s, 2, '[', ']') == 11
+@test balanced_paren(s, 9, '[', ']') == 10
+
+s = "12(456()"
+@test balanced_paren(s, 3) == 0 #not found

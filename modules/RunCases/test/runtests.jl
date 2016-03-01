@@ -32,13 +32,59 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
-using Base.Test
+using RLESUtils, RunCases
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+# generates all combinations (cartesian products)
+cases = generate_cases(("x",[1,2,3]),("y",['a','b','c']))
 
-pkgs = readdir(MODULEDIR)
+# add a field to each case based on a function
+add_field!(cases, "z", x -> x + 10, ["x"])
 
-for pkg in pkgs
-  RLESUtils.test(pkg)
+#now you can iterate over the cases
+for case in cases
+
+  #iterate over each parameter (key) and value pair in each case
+  for (k, v) in case
+    println("key: $k, val: $v")
+  end
+
+  println("")
 end
+
+#=generated output:
+key: x, val: 1
+key: z, val: 11
+key: y, val: a
+
+key: x, val: 2
+key: z, val: 12
+key: y, val: a
+
+key: x, val: 3
+key: z, val: 13
+key: y, val: a
+
+key: x, val: 1
+key: z, val: 11
+key: y, val: b
+
+key: x, val: 2
+key: z, val: 12
+key: y, val: b
+
+key: x, val: 3
+key: z, val: 13
+key: y, val: b
+
+key: x, val: 1
+key: z, val: 11
+key: y, val: c
+
+key: x, val: 2
+key: z, val: 12
+key: y, val: c
+
+key: x, val: 3
+key: z, val: 13
+key: y, val: c
+=#

@@ -32,13 +32,39 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, CodeUtils
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
-
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
+function f()
+  s = 0
+  i = 1
+  for x in [10, 20, 30]
+    s += x + i
+    i += 1
+  end
+  return s
 end
+
+function g()
+  s = 0
+  i = 9999
+  @enumerate i for x in [10, 20, 30]
+    s += x + i
+  end
+  return s
+end
+
+#compile
+@time f()
+@time g()
+
+#should give same performance
+@time f()
+@time g()
+
+#n should not be overwritten
+n = 9999
+@enumerate n for x in [10, 20, 30]
+  println(x, n)
+end
+@test n == 9999

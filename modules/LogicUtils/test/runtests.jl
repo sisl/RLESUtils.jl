@@ -32,13 +32,22 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, LogicUtils, StringUtils
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+v1 = rand(Bool, 50);
+v2 = rand(Bool, 50);
+@printeval @time r1 = v1 & v2;
+@printeval @time r2 = and!(v1, v2);
+@test r1 == r2
 
-pkgs = readdir(MODULEDIR)
+v1 = rand(Bool, 50);
+v2 = rand(Bool, 50);
+@printeval @time r1 = v1 | v2;
+@printeval @time r2 = or!(v1, v2);
+@test r1 == r2
 
-for pkg in pkgs
-  RLESUtils.test(pkg)
-end
+v1 = rand(Bool, 50);
+@printeval @time r1 = !v1;
+@printeval @time r2 = not!(v1);
+@test r1 == r2

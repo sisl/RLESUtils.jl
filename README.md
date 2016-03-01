@@ -9,7 +9,7 @@ RunCases.jl is a Julia package to manage parameters and facilitate parameter stu
 ```
 #!Julia
 
-using RLESUtils.RunCases
+using RLESUtils, RunCases
 
 # generates all combinations (cartesian products)
 cases = generate_cases(("x",[1,2,3]),("y",['a','b','c']))
@@ -41,7 +41,7 @@ Obj2Dict.jl is a Julia package that converts an object to/from a dict for storag
 ```
 #!Julia
 
-using RLESUtils.Obj2Dict
+using RLESUtils, Obj2Dict
 using JSON
 
 type MyType

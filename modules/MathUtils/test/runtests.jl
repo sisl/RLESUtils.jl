@@ -32,13 +32,27 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, MathUtils
 using Base.Test
+using StatsBase
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+@test gini_impurity([1,1,1]) == 0.0
+@test gini_impurity([2,2]) == 0.0
+@test gini_impurity([3]) == 0.0
+@test gini_impurity(Int64[]) == 0.0
 
-pkgs = readdir(MODULEDIR)
+v1 = [1,1,2,3]
+v2 = [1,2]
+g1 = 0.625
+g2 = 0.5
+@test gini_impurity(v1) == 1.0 - sumabs2(proportions(v1)) == g1
+@test gini_impurity(v2) == 1.0 - sumabs2(proportions(v2)) == g2
+@test_approx_eq_eps gini_impurity(v1, v2) 4/6*g1 + 2/6*g2 1e6
 
-for pkg in pkgs
-  RLESUtils.test(pkg)
-end
+c1 = [2,1,1]
+c2 = [1,1]
+@test gini_from_counts(Int64[]) == 0.0
+@test gini_from_counts([1,0,0]) == 0.0
+@test gini_from_counts(c1) == g1
+@test gini_from_counts(c2) == g2
+@test_approx_eq_eps gini_from_counts(c1, c2) 4/6*g1 + 2/6*g2 1e6

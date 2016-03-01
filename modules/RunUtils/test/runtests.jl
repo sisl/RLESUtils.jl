@@ -33,12 +33,7 @@
 # *****************************************************************************
 
 using RLESUtils
-using Base.Test
+using RunUtils
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
-
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
-end
+#addprocs(4)
+#parallel_include("./parallel_include_test")

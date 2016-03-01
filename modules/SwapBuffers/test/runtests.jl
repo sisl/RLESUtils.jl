@@ -32,13 +32,26 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, SwapBuffers
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
-
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
+type MyType
+  a::Int64
 end
+
+sbuf = SwapBuffer(MyType(0), MyType(0))
+
+x = active(sbuf)
+x.a = 1
+
+swap!(sbuf)
+
+x = active(sbuf)
+x.a = 2
+
+swap!(sbuf)
+x = active(sbuf)
+y = inactive(sbuf)
+
+@test x.a == 1
+@test y.a == 2

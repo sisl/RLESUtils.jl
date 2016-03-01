@@ -32,13 +32,26 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
-using Base.Test
+using RLESUtils, ParamSweeps
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
-
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
+function myfunction(x1, x2; verbose=false)
+  verbose && println("x1=$x1, x2=$x2")
+  return x1 + x2
 end
+
+script = ParamSweep(myfunction, [1, 2, 3], [4, 5, 6])
+result = run(script)
+
+@test result == [5, 6, 7, 6, 7, 8, 7, 8, 9]
+
+#####
+
+function myfunction2(; x1=0, x2=0, verbose=false)
+  verbose && println("x1=$x1, x2=$x2")
+  return x1 + x2
+end
+
+script = KWParamSweep(myfunction2, x1=[1, 2, 3], x2=[4, 5, 6])
+result = run(script)
+
+@test result == [5, 6, 7, 6, 8, 7, 8, 9]

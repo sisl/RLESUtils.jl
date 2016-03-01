@@ -32,13 +32,32 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+
+using RLESUtils, MemPools
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
-
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
+type MyType
+  a::Int64
+  b::Bool
 end
+
+MyType() = MyType(1, true)
+
+pool = MemPool(MyType, 1, 5)
+
+A = [checkout(pool) for i=1:5]
+
+try
+  checkout(pool) #cause exception
+  @test false
+catch
+  @test true
+end
+
+@test length(pool) == 0
+
+for a in A
+  checkin(pool, a)
+end
+
+@test length(pool) == 5

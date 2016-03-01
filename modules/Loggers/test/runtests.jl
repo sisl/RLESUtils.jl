@@ -32,13 +32,68 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, Loggers, Observers
+using DataFrames
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+function test_dflogger()
+  logger = DataFrameLogger([Bool,Int], ["mybool", "myint"])
+  f = push!_f(logger)
+  f([true, 0])
+  f([false, 5])
+  d = get_log(logger)
+  @test d[:mybool] == [true, false]
+  @test d[:myint] == [0, 5]
 
-pkgs = readdir(MODULEDIR)
-
-for pkg in pkgs
-  RLESUtils.test(pkg)
+  #test operability with Observers
+  empty!(logger)
+  obs = Observer()
+  add_observer(obs, push!_f(logger))
+  @notify_observer_default(obs, [false, 150])
+  @notify_observer_default(obs, [true, -5])
+  d = get_log(logger)
+  @test d[:mybool] == [false, true]
+  @test d[:myint] == [150, -5]
 end
+
+function test_arraylogger()
+  logger = ArrayLogger()
+  f = push!_f(logger)
+  f([true, 0])
+  f([false, 5])
+  d = get_log(logger)
+  @test d[1] == [true, 0]
+  @test d[2] == [false, 5]
+
+  #test operability with Observers
+  empty!(logger)
+  obs = Observer()
+  add_observer(obs, push!_f(logger))
+  @notify_observer_default(obs, [false, 150])
+  @notify_observer_default(obs, [true, -5])
+  d = get_log(logger)
+  @test d[1] == [false, 150]
+  @test d[2] == [true, -5]
+end
+
+function test_tdflogger()
+  logger = TaggedDFLogger()
+  add_folder!(logger, "folder1", [Bool, Int64], ["mybool", "myint"])
+  add_folder!(logger, "folder2", [Float64, Bool], ["myfloat", "mybool"])
+  g1 = push!_f(logger, "folder1")
+  g2 = push!_f(logger, "folder2")
+  g1([true, 1])
+  g1([false, 2])
+  g2([1.1, false])
+  g2([2.2, true])
+  log1 = get_log(logger, "folder1")
+  log2 = get_log(logger, "folder2")
+  @test log1[:mybool] == [true, false]
+  @test log1[:myint] == [1, 2]
+  @test log2[:myfloat] == [1.1, 2.2]
+  @test log2[:mybool] == [false, true]
+end
+
+test_dflogger()
+test_arraylogger()
+test_tdflogger()

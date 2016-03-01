@@ -32,13 +32,58 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+using RLESUtils, Observers
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+function test_observers()
+  obs = Observer()
 
-pkgs = readdir(MODULEDIR)
+  logger = Any[]
+  f1(x) = push!(logger, "f1($x)")
+  f2(x) = push!(logger, "f2($x)")
+  f3(x) = push!(logger, "f3($x)")
 
-for pkg in pkgs
-  RLESUtils.test(pkg)
+  add_observer(obs, f1)
+  add_observer(obs, f2)
+  @notify_observer_default(obs, 1)
+  @test logger == ["f1(1)", "f2(1)"]
+  empty!(logger)
+
+  add_observer(obs, "x", f3)
+  @notify_observer(obs, "x", 2)
+  @test logger == ["f3(2)"]
+  empty!(logger)
+
+  empty!(obs)
+  @notify_observer(obs, "x", 5)
+  @test isempty(logger)
+
+  empty!(obs)
+  big_alloc = false
+  make_big_alloc() = big_alloc = true
+  @notify_observer_default(obs, make_big_alloc())
+  @test big_alloc == false #should not be called
 end
+
+#parallel
+function test_par_observers(nthreads=3)
+  obs = Observer()
+
+  logger = Any[]
+  f1(x) = push!(logger, "id=$(myid()), thr=$(x[1]), x=$(x[2])")
+  add_observer(obs, f1)
+
+  pmap(1:nthreads) do thr
+    testinner(obs, thr)
+  end
+
+  logger
+end
+
+function testinner(obs::Observer, thr::Int64)
+  for i = 10:15
+    @notify_observer_default(obs, [thr, i])
+  end
+end
+
+test_observers()

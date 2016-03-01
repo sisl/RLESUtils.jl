@@ -34,73 +34,15 @@
 
 module RLESUtils
 
-include("ArrayUtils.jl")
-export ArrayUtils
+const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
 
-include("ConvertUtils.jl")
-export ConvertUtils
+include(joinpath(MODULEDIR, "ModLoader", "src", "ModLoader.jl"))
 
-#deprecated
-include("RunCases.jl")
-export RunCases
+using .ModLoader
+load_to_path(MODULEDIR)
 
-include("StringUtils.jl")
-export StringUtils
-
-#will probably be deprecated...
-include("Obj2Dict.jl")
-export Obj2Dict
-
-include("FileUtils.jl")
-export FileUtils
-
-#deprecated
-include("LookupCallbacks.jl")
-export LookupCallbacks
-
-include("MathUtils.jl")
-export MathUtils
-
-include("GitUtils.jl")
-export GitUtils
-
-include("LatexUtils.jl")
-export LatexUtils
-
-include("RNGWrapper.jl")
-export RNGWrapper
-
-include("Observers.jl")
-export Observers
-
-include("Loggers.jl")
-export Loggers
-
-include("ParamSweeps.jl")
-export ParamSweeps
-
-include("RunUtils.jl")
-export RunUtils
-
-include("Vectorizer.jl")
-export Vectorizer
-
-include("MemPools.jl")
-export MemPools
-
-include("CodeUtils.jl")
-export CodeUtils
-
-include("SwapBuffers.jl")
-export SwapBuffers
-
-include("LogicUtils.jl")
-export LogicUtils
-
-include("Configure.jl")
-export Configure
-
-include("ModLoader.jl")
-export ModLoader
+function test(pkgs::AbstractString...; coverage::Bool=false)
+  cd(() -> Pkg.Entry.test(AbstractString[pkgs...]; coverage=coverage), MODULEDIR)
+end
 
 end #module

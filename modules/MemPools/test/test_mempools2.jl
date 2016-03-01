@@ -32,13 +32,32 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
+
+using RLESUtils, MemPools
+using DerivationTrees
 using Base.Test
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
+N = 5;
+pool = MemPool(DerivTreeNode, N);
 
-pkgs = readdir(MODULEDIR)
+A = Array(DerivTreeNode, N);
 
-for pkg in pkgs
-  RLESUtils.test(pkg)
-end
+@time A[1] = checkout(pool);
+@time A[2] = checkout(pool);
+
+@time checkin(pool, A[1]);
+@time checkin(pool, A[2]);
+
+@time A[1] = checkout(pool);
+@time A[2] = checkout(pool);
+
+@time checkin(pool, A[1]);
+@time checkin(pool, A[2]);
+
+@time A[1] = pop!(pool.inventory);
+@time A[2] = pop!(pool.inventory);
+
+@time push!(pool.inventory, A[1]);
+@time push!(pool.inventory, A[2]);
+
+@time 1;
