@@ -36,12 +36,12 @@ module ModLoader
 
 export load_to_path
 
-function load_to_path(moduledir::AbstractString)
+function load_to_path(moduledir::AbstractString, srcdir::AbstractString="src")
   subdirs = readdir(moduledir)
   map!(x -> abspath(joinpath(moduledir, x)), subdirs)
   filter!(isdir, subdirs)
   for subdir in subdirs
-    push!(LOAD_PATH, joinpath(subdir, "src"))
+    push!(LOAD_PATH, joinpath(subdir, srcdir))
   end
 end
 
