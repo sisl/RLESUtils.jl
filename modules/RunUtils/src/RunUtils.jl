@@ -34,7 +34,7 @@
 
 module RunUtils
 
-export parallel_include
+export parallel_include, julia_process
 
 using RLESUtils, FileUtils
 
@@ -49,6 +49,11 @@ parallel_include{T}(files::Vector{T}) = parallel_include(files...)
 function parallel_include(dir::AbstractString=".")
   files = readdir_ext(".jl", dir)
   return parallel_include(files)
+end
+
+function julia_process(script::AbstractString)
+  julia_exe = joinpath(JULIA_HOME, Base.julia_exename())
+  success(`$julia_exe $script`)
 end
 
 end #module
