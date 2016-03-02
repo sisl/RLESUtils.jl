@@ -34,7 +34,9 @@
 
 module GitUtils
 
-export get_SHA, pkg_SHA
+export get_SHA, pkg_SHA, installed_SHA
+
+installed_SHA() = map(k -> (symbol(k), pkg_SHA(k)), keys(Pkg.installed()))
 
 pkg_SHA(pkg::AbstractString) = get_SHA(Pkg.dir(pkg))
 
