@@ -2,3 +2,5 @@ julia 0.4
 Iterators
 DataFrames
 DataStructures
+TikzPictures
+DataFramesMeta
