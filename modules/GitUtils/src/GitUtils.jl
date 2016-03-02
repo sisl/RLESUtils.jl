@@ -34,7 +34,9 @@
 
 module GitUtils
 
-export get_SHA
+export get_SHA, pkg_SHA
+
+pkg_SHA(pkg::AbstractString) = get_SHA(Pkg.dir(pkg))
 
 function get_SHA(dir::AbstractString="./")
   current_dir = pwd()
