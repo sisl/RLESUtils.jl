@@ -32,44 +32,18 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module SwapBuffers
+using RLESUtils, IteratorUtils
+using Base.Test
 
-export SwapBuffer, active, inactive, swap!, set_active!, set_inactive!
+function testweave()
+  x = [1,4,7,10]
+  y = [2,5,8]
+  z = [3,6,9,11,12,13]
+  truth = [1,2,3,4,5,6,7,8,9,10,11,12,13]
 
-type SwapBuffer{T}
-  bufferA::T
-  bufferB::T
-  isactiveA::Bool
+  result = collect(weave(x,y,z))
+  #@show result
+  @test result == truth
 end
 
-"Creates a new swapbuffer setting buffer A to active"
-SwapBuffer{T}(bufferA::T, bufferB::T) = SwapBuffer(bufferA, bufferB, true)
-
-"returns contents of active buffer"
-active{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferA : sbuf.bufferB
-
-"returns contents of inactive buffer"
-inactive{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferB : sbuf.bufferA
-
-"Set active buffer to x"
-function set_active!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferA = x
-  else
-    sbuf.bufferB = x
-  end
-end
-
-"Set inactive buffer to x"
-function set_inactive!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferB = x
-  else
-    sbuf.bufferA = x
-  end
-end
-
-"Swap active and inactive buffers"
-swap!{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA = !sbuf.isactiveA
-
-end #module
+testweave()

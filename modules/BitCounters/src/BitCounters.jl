@@ -32,44 +32,46 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module SwapBuffers
+module BitCounters
 
-export SwapBuffer, active, inactive, swap!, set_active!, set_inactive!
+export BitCounter, increment!
 
-type SwapBuffer{T}
-  bufferA::T
-  bufferB::T
-  isactiveA::Bool
+import Base: getindex, vec, start, next, done
+
+type BitCounter
+  v::BitVector
 end
 
-"Creates a new swapbuffer setting buffer A to active"
-SwapBuffer{T}(bufferA::T, bufferB::T) = SwapBuffer(bufferA, bufferB, true)
+BitCounter(n::Int64) = BitCounter(BitVector(n))
 
-"returns contents of active buffer"
-active{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferA : sbuf.bufferB
+function increment!(c::BitCounter, index::Int64=1)
+  (0 <= index <= length(c.v)) || return
 
-"returns contents of inactive buffer"
-inactive{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferB : sbuf.bufferA
-
-"Set active buffer to x"
-function set_active!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferA = x
+  if !c.v[index]
+    c.v[index] = true
   else
-    sbuf.bufferB = x
+    c.v[index] = false
+    increment!(c, index + 1)
   end
 end
 
-"Set inactive buffer to x"
-function set_inactive!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferB = x
-  else
-    sbuf.bufferA = x
-  end
+getindex(c::BitCounter, index) = getindex(c.v, index)
+vec(c::BitCounter) = c.v
+
+#This iterator modifies the original bitcounter!
+function start(c::BitCounter)
+  fill!(c.v, false)
+  0 #state
 end
 
-"Swap active and inactive buffers"
-swap!{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA = !sbuf.isactiveA
+function next(c::BitCounter, state)
+  v = deepcopy(vec(c))
+  increment!(c)
+  v, state + 1
+end
+
+function done(c::BitCounter, state)
+  state != 0 && !any(c.v)
+end
 
 end #module

@@ -32,44 +32,30 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module SwapBuffers
+using RLESUtils, BitCounters
+using Base.Test
 
-export SwapBuffer, active, inactive, swap!, set_active!, set_inactive!
+c = BitCounter(3)
+@test vec(c) == [false, false, false]
 
-type SwapBuffer{T}
-  bufferA::T
-  bufferB::T
-  isactiveA::Bool
+increment!(c)
+@test vec(c) == [true, false, false]
+@test c[1] == true
+@test c[2] == false
+@test c[3] == false
+
+increment!(c)
+@test vec(c) == [false, true, false]
+
+increment!(c)
+@test vec(c) == [true, true, false]
+
+for i = 1:5
+  increment!(c)
 end
 
-"Creates a new swapbuffer setting buffer A to active"
-SwapBuffer{T}(bufferA::T, bufferB::T) = SwapBuffer(bufferA, bufferB, true)
+@test vec(c) == [false, false, false]
 
-"returns contents of active buffer"
-active{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferA : sbuf.bufferB
-
-"returns contents of inactive buffer"
-inactive{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferB : sbuf.bufferA
-
-"Set active buffer to x"
-function set_active!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferA = x
-  else
-    sbuf.bufferB = x
-  end
+for v in BitCounter(3)
+  @show v
 end
-
-"Set inactive buffer to x"
-function set_inactive!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferB = x
-  else
-    sbuf.bufferA = x
-  end
-end
-
-"Swap active and inactive buffers"
-swap!{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA = !sbuf.isactiveA
-
-end #module

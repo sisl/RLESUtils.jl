@@ -36,6 +36,7 @@ module MathUtils
 
 export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, gini_impurity, gini_from_counts
 export SEM_ymax, SEM_ymin
+export sum_to_1
 
 using StatsBase
 
@@ -108,5 +109,7 @@ function gini_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector{In
   gini = (n1 * g1 + n2 * g2) / N
   gini
 end
+
+sum_to_1(v::Vector{Float64}) = v ./ sum(v)
 
 end #module

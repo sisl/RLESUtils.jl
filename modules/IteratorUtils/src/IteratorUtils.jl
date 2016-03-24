@@ -32,44 +32,62 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-module SwapBuffers
+module IteratorUtils
 
-export SwapBuffer, active, inactive, swap!, set_active!, set_inactive!
+export weave
 
-type SwapBuffer{T}
-  bufferA::T
-  bufferB::T
-  isactiveA::Bool
+import Base: start, next, done
+
+typealias Iterable Any
+
+type WeaveIter
+  subiters::Vector{Iterable}
+  states::Vector{Any}
+  isdone::Vector{Bool}
 end
 
-"Creates a new swapbuffer setting buffer A to active"
-SwapBuffer{T}(bufferA::T, bufferB::T) = SwapBuffer(bufferA, bufferB, true)
+function WeaveIter(iters::Tuple{Vararg{Iterable}}, states::Vector{Any}, isdone::Vector{Bool})
+  iterarray = [iters[i] for i = 1:length(iters)]
+  WeaveIter(iterarray, states, isdone)
+end
 
-"returns contents of active buffer"
-active{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferA : sbuf.bufferB
+function weave(iters::Iterable...)
+  WeaveIter(iters, Array(Any, length(iters)), fill(false, length(iters)))
+end
 
-"returns contents of inactive buffer"
-inactive{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA ? sbuf.bufferB : sbuf.bufferA
-
-"Set active buffer to x"
-function set_active!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferA = x
-  else
-    sbuf.bufferB = x
+function start(iter::WeaveIter)
+  for i in eachindex(iter.subiters)
+    iter.states[i] = start(iter.subiters[i])
   end
+  index = 1
 end
 
-"Set inactive buffer to x"
-function set_inactive!{T}(sbuf::SwapBuffer{T}, x::T)
-  if sbuf.isactiveA
-    sbuf.bufferB = x
-  else
-    sbuf.bufferA = x
+
+function next(iter::WeaveIter, index::Int64)
+  total = 0
+  while iter.isdone[index]
+    index = nextindex(index, length(iter.subiters))
+    total += 1
+    if total > length(iter.subiters) #we've made a full circle and found nothing, quit
+      return nothing
+    end
   end
+  item, iter.states[index] = next(iter.subiters[index], iter.states[index])
+  if done(iter.subiters[index], iter.states[index])
+    iter.isdone[index] = true
+  end
+  index = nextindex(index, length(iter.subiters))
+
+  item, index
 end
 
-"Swap active and inactive buffers"
-swap!{T}(sbuf::SwapBuffer{T}) = sbuf.isactiveA = !sbuf.isactiveA
+function done(iter::WeaveIter, index::Int64)
+  all(iter.isdone)
+end
+
+#cycle through indices
+function nextindex(index::Int64, maxindex::Int64)
+  index < maxindex ? index + 1 : 1
+end
 
 end #module
