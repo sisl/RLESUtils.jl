@@ -56,3 +56,12 @@ c2 = [1,1]
 @test gini_from_counts(c1) == g1
 @test gini_from_counts(c2) == g2
 @test_approx_eq_eps gini_from_counts(c1, c2) 4/6*g1 + 2/6*g2 1e6
+
+x = 10
+y = 200
+z = x + y
+logx = log(x)
+logy = log(y)
+logz_ = logxpy(logx, logy)
+logz = log(z)
+@assert logz == logz_

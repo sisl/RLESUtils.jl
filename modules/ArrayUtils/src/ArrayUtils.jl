@@ -34,16 +34,26 @@
 
 module ArrayUtils
 
-export elements_equal
+export elements_equal, duplicate!
 
 using Iterators
 
-#all elements in the vector are equal to each other
+"""
+Returns true if all elements in the vector are equal to each other
+"""
 function elements_equal{T}(x::Vector{T})
   for (x1, x2) in partition(x, 2, 1)
     x1 != x2 && return false
   end
   return true
+end
+
+"""
+resize and copy! in 1 call
+"""
+function duplicate!{T}(x::Vector{T}, y::Vector{T})
+  resize!(x, length(y))
+  copy!(x, y)
 end
 
 end #module

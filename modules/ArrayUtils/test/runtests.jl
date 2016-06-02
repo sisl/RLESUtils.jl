@@ -44,3 +44,9 @@ x4 = [true, false, true, true]
 @test elements_equal(x2) == false
 @test elements_equal(x3) == true
 @test elements_equal(x4) == false
+
+
+y = Int64[1,2,3,4]
+x = Int64[]
+duplicate!(x, y)
+@test x == y #checks elementwise
