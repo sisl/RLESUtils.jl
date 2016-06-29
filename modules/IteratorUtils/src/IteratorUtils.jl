@@ -51,6 +51,10 @@ function RoundRobinIter(iters::Tuple{Vararg{Iterable}}, states::Vector{Any}, isd
   RoundRobinIter(iterarray, states, isdone)
 end
 
+"""
+Iterate over a list of iterables in round robin style
+e.g., collect(roundrobin([1,4], [2,5],[3,6,7])) #gives [1,2,3,4,5,6,7]
+"""
 function roundrobin(iters::Iterable...)
   RoundRobinIter(iters, Array(Any, length(iters)), fill(false, length(iters)))
 end
