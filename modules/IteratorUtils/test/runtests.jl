@@ -35,15 +35,17 @@
 using RLESUtils, IteratorUtils
 using Base.Test
 
-function testweave()
+function test_roundrobin(;verbose::Bool=false)
   x = [1,4,7,10]
   y = [2,5,8]
   z = [3,6,9,11,12,13]
   truth = [1,2,3,4,5,6,7,8,9,10,11,12,13]
 
-  result = collect(weave(x,y,z))
-  #@show result
+  result = collect(roundrobin(x,y,z))
+  if verbose
+    @show result
+  end
   @test result == truth
 end
 
-testweave()
+test_roundrobin()

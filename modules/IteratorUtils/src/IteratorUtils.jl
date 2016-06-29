@@ -34,28 +34,28 @@
 
 module IteratorUtils
 
-export weave
+export roundrobin
 
 import Base: start, next, done
 
 typealias Iterable Any
 
-type WeaveIter
+type RoundRobinIter
   subiters::Vector{Iterable}
   states::Vector{Any}
   isdone::Vector{Bool}
 end
 
-function WeaveIter(iters::Tuple{Vararg{Iterable}}, states::Vector{Any}, isdone::Vector{Bool})
+function RoundRobinIter(iters::Tuple{Vararg{Iterable}}, states::Vector{Any}, isdone::Vector{Bool})
   iterarray = [iters[i] for i = 1:length(iters)]
-  WeaveIter(iterarray, states, isdone)
+  RoundRobinIter(iterarray, states, isdone)
 end
 
-function weave(iters::Iterable...)
-  WeaveIter(iters, Array(Any, length(iters)), fill(false, length(iters)))
+function roundrobin(iters::Iterable...)
+  RoundRobinIter(iters, Array(Any, length(iters)), fill(false, length(iters)))
 end
 
-function start(iter::WeaveIter)
+function start(iter::RoundRobinIter)
   for i in eachindex(iter.subiters)
     iter.states[i] = start(iter.subiters[i])
   end
@@ -63,7 +63,7 @@ function start(iter::WeaveIter)
 end
 
 
-function next(iter::WeaveIter, index::Int64)
+function next(iter::RoundRobinIter, index::Int64)
   total = 0
   while iter.isdone[index]
     index = nextindex(index, length(iter.subiters))
@@ -81,7 +81,7 @@ function next(iter::WeaveIter, index::Int64)
   item, index
 end
 
-function done(iter::WeaveIter, index::Int64)
+function done(iter::RoundRobinIter, index::Int64)
   all(iter.isdone)
 end
 
