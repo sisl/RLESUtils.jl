@@ -34,130 +34,202 @@
 
 module DataFrameSets
 
-export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs
-export start, next, done, length, vcat, getindex, push!
-export names, records, labels
+export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs, metacolnames, recordcolnames, filenames
+export getmeta, getrecords, labels, metadf
+export addrecord!
 
-import Base: start, next, done, length, vcat, getindex, push!, names
+import Base: start, next, done, length, size, vcat, getindex, convert
 
 using RLESUtils, FileUtils
 using Reexport
 @reexport using DataFrames
 import DataArrays.anyna
 
+const METAFILE = "_META.csv.gz"
+# metafile is a dataframe that contains:
+# required columns, one row for each record
+# :id that matches row number (for joins and reverse lookup)
+
 type DFSet
-  names::Vector{ASCIIString}
-  records::Vector{DataFrame}
+    meta::DataFrame
+    records::Vector{DataFrame}
 end
-DFSet(name::ASCIIString, record::DataFrame) = DFSet([name],[record])
-DFSet() = DFSet(ASCIIString[], DataFrame[])
+DFSet(meta::DataFrame, record::DataFrame) = DFSet(meta, [record])
+DFSet(records::Array{DataFrame}) = DFSet(metadf(length(records)), records)
+DFSet() = DFSet(metadf(), DataFrame[])
 
-type DFSetLabeled{T}
-  names::Vector{ASCIIString}
-  records::Vector{DataFrame}
-  labels::Vector{T}
-end
-DFSetLabeled(T::Type) = DFSetLabeled(ASCIIString[], DataFrame[], T[])
-DFSetLabeled{T}(name::ASCIIString, record::DataFrame, label::T) = DFSetLabeled{T}([name], [record], [label])
-
-function DFSetLabeled{T}(Ds::DFSet, labels::Vector{T})
-  @assert length(Ds.names) == length(Ds.records) == length(labels)
-  DFSetLabeled(Ds.names, Ds.records, labels)
+function metadf(N::Int64=0)
+    meta = DataFrame()
+    meta[:id] = 1:N
+    meta
 end
 
-function load_dir(dir::AbstractString; ext::AbstractString="csv") #directory of csvs
-  files = readdir_ext(ext, dir) |> sort!
-  Ds = load_from_csvs(files)
-  return Ds
-end
-
-function load_csvs{T<:AbstractString}(files::Vector{T})
-  records = map(readtable, files)
-  fnames = map(basename, files)
-  return DFSet(fnames, records)
+function load_csvs(dir::AbstractString)
+    metafile = joinpath(dir, METAFILE)
+    if isfile(metafile) #look for metafile
+        meta = readtable(metafile)
+    else
+        error("load_csvs: metafile not found!")
+    end
+    fnames = filenames(meta; dir=dir)
+    Ds = DFSet(meta, map(readtable, fnames))
+    Ds
 end
 
 function save_csvs(outdir::AbstractString, Ds::DFSet)
-  mkpath(outdir)
+    mkpath(outdir)
 
-  for (name, D) in Ds
-    fname = joinpath(outdir, name) * ".csv.gz"
-    writetable(fname, D)
-  end
+    #meta file
+    fname = joinpath(outdir, METAFILE)
+    writetable(fname, getmeta(Ds))
+
+    #records
+    fnames = filenames(Ds; dir=outdir)
+    records = getrecords(Ds) 
+    for i = 1:length(Ds)
+        writetable(fnames[i], records[i])
+    end
 end
 
-colnames(Ds::DFSet) = colnames(Ds.records[1])
-colnames(Dl::DFSetLabeled) = colnames(Dl.records[1])
+metacolnames(Ds::DFSet) = colnames(Ds.meta)
+recordcolnames(Ds::DFSet) = colnames(Ds.records[1])
 colnames(D::DataFrame) = map(string, names(D))
 
-getindex(Ds::DFSet, inds) = DFSet(Ds.names[inds], Ds.records[inds])
-getindex{T}(Dl::DFSetLabeled{T}, inds) = DFSetLabeled(Dl.names[inds], Dl.records[inds], Dl.labels[inds])
+getindex(Ds::DFSet, inds) = DFSet(Ds.meta[inds,:], Ds.records[inds])
 
-names(Ds::DFSet) = Ds.names
-records(Ds::DFSet) = Ds.records
-names(Ds::DFSet, inds) = Ds.names[inds]
-records(Ds::DFSet, inds) = Ds.records[inds]
-
-names(Dl::DFSetLabeled) = Dl.names
-records(Dl::DFSetLabeled) = Dl.records
-labels(Dl::DFSetLabeled) = Dl.labels
-names(Dl::DFSetLabeled, inds) = Dl.names[inds]
-records(Dl::DFSetLabeled, inds) = Dl.records[inds]
-labels(Dl::DFSetLabeled, inds) = Dl.labels[inds]
-
-function setlabels!{T}(Dl::DFSetLabeled{T}, labels::Vector{T})
-  @assert length(Dl.records) == length(labels)
-  Dl.labels = labels
-  return Dl
+filenames(Ds::DFSet; dir::AbstractString="") = filenames(Ds.meta; dir=dir)
+filenames(Ds::DFSet, inds; dir::AbstractString="") = filenames(Ds.meta, inds; dir=dir)
+function filenames(meta::DataFrame; dir::AbstractString="") 
+    fs = convert(Array, meta[:id])
+    fs = map(f -> joinpath(dir, string(f,".csv.gz")), fs)
+    fs
+end
+function filenames(meta::DataFrame, inds; dir::AbstractString="") 
+    fs = convert(Array, meta[inds, :id])
+    fs = map(f -> joinpath(dir, string(f, ".csv.gz")), fs)
+    fs
 end
 
-function setlabels{T1, T2}(Dl::DFSetLabeled{T1}, labels::Vector{T2})
-  @assert length(Dl.records) == length(labels)
-  return DFSetLabeled{T2}(Dl.names, Dl.records, labels)
+getmeta(Ds::DFSet) = Ds.meta
+getrecords(Ds::DFSet) = Ds.records
+getmeta(Ds::DFSet, inds) = squeeze(convert(Array, Ds.meta[inds,:]), 1)
+getrecords(Ds::DFSet, inds) = Ds.records[inds]
+
+
+function addrecord!{T}(Ds::DFSet, record::DataFrame, row::Vector{T}=Any[])
+    id = length(Ds) + 1
+    push!(Ds.meta, [id; row])
+    push!(Ds.records, record)
 end
 
-function push!(Ds::DFSet, xs::Tuple{AbstractString, DataFrame})
-  name, record = xs
-  push!(Ds.names, name)
-  push!(Ds.records, record)
-end
-
-function push!{T}(Ds::DFSetLabeled{T}, xs::Tuple{AbstractString, DataFrame, T})
-  name, record, label = xs
-  push!(Ds.names, name)
-  push!(Ds.records, record)
-  push!(Ds.labels, label)
-end
-
-start(Ds::DFSet) = start(zip(Ds.names, Ds.records)) #TODO: don't zip every time
-next(Ds::DFSet, s) = next(zip(Ds.names, Ds.records), s)
-done(Ds::DFSet, s) = done(zip(Ds.names, Ds.records), s)
-length(Ds::DFSet) = length(Ds.records)
+start(Ds::DFSet) = 1 
+next(Ds::DFSet, i::Int64) = ((getmeta(Ds, i), getrecords(Ds, i)), i + 1)
+done(Ds::DFSet, i::Int64) = i > length(Ds) 
+length(Ds::DFSet) = length(Ds.records) #number of records
 
 function vcat(D1::DFSet, D2::DFSet)
-  DFSet(
-    vcat(D1.names, D2.names),
-    vcat(D1.records, D2.records)
-    )
-end
-
-start(Dl::DFSetLabeled) = start(zip(Dl.names, Dl.records, Dl.labels))
-next(Dl::DFSetLabeled, s) = next(zip(Dl.names, Dl.records, Dl.labels), s)
-done(Dl::DFSetLabeled, s) = done(zip(Dl.names, Dl.records, Dl.labels), s)
-length(Dl::DFSetLabeled) = length(Dl.records)
-
-function vcat{T}(Dl1::DFSetLabeled{T}, Dl2::DFSetLabeled{T})
-  DFSetLabeled(
-    vcat(Dl1.names, Dl2.names),
-    vcat(Dl1.records, Dl2.records),
-    vcat(Dl1.labels, Dl2.labels)
-    )
+    DFSet(
+      vcat(D1.meta, D2.meta),
+      vcat(D1.records, D2.records)
+      )
 end
 
 anyna(Ds::DFSet) = anyna(Ds.records)
-anyna(Dl::DFSetLabeled) = anyna(Dl.records)
-
 anyna(Ds::Vector{DataFrame}) = any(map(anyna, Ds))
 anyna(D::DataFrame) = any(convert(Array, map(anyna, eachcol(D))))
+
+"""
+returns the size of each record
+if check is true, then check that all records have the same size
+else just return the size of the first one and assume it's correct
+"""
+function size(Ds::DFSet; check::Bool=false)
+    recs = getrecords(Ds)
+    ndat = length(recs)
+    nr = nrow(recs[1])
+    nc = ncol(recs[1])
+
+    if check
+        for i = 1::length(recs)
+            @assert nr == nrow(recs[i])
+            @assert nc == ncol(recs[i])
+        end
+    end
+    (ndat, nr, nc)
+end
+
+"""
+Convert DFSet to a 3D array
+"""
+function convert(::Type{Array}, Ds::DFSet)
+    recs = getrecords(Ds)
+    A1 = convert(Array, recs[1]) #use first one to get eltype
+    A = Array(eltype(A1), size(Ds)) #3D array
+    A[1,:,:] = A1 #reuse the first one
+    for i = 2:length(recs)
+        A[i,:,:] = convert(Array, recs[i])
+    end
+    A 
+end
+
+### DFSetLabeled
+type DFSetLabeled{T}
+    data::DFSet
+    labels::Vector{T}
+end
+function DFSetLabeled(Ds::DFSet, metacolumn::Symbol)
+    meta = getmeta(Ds)
+    labels = convert(Array, meta[metacolumn])
+    Dl = DFSetLabeled(Ds, labels)
+    Dl
+end
+
+getindex{T}(Dl::DFSetLabeled{T}, inds) = DFSetLabeled(Dl.meta[inds], Dl.records[inds], Dl.labels[inds])
+
+getmeta(Dl::DFSetLabeled) = getmeta(Dl.data)
+getrecords(Dl::DFSetLabeled) = getrecords(Dl.data)
+labels(Dl::DFSetLabeled) = Dl.labels
+getmeta(Dl::DFSetLabeled, inds) = getmeta(Dl.data, inds)
+getrecords(Dl::DFSetLabeled, inds) = getrecords(Dl.data, inds)
+labels(Dl::DFSetLabeled, inds) = Dl.labels[inds]
+
+"""
+set labels, same type as existing
+"""
+function setlabels!{T}(Dl::DFSetLabeled{T}, labels::Vector{T})
+    @assert length(Dl.data) == length(labels)
+    Dl.labels = labels
+    Dl
+end
+
+"""
+set labels, different type as existing
+"""
+function setlabels{T1, T2}(Dl::DFSetLabeled{T1}, labels::Vector{T2})
+    @assert length(Dl.data) == length(labels)
+    Dl = DFSetLabeled{T2}(Dl.data, labels)
+    Dl
+end
+
+function addrecord!{Tl,Tr}(Dl::DFSetLabeled{Tl}, record::DataFrame, 
+    label::Tl, row::Vector{Tr}=Any[])
+
+    addrecord!(Dl.data, record, row)
+    push!(Dl.labels, label)
+end
+
+anyna(Dl::DFSetLabeled) = anyna(Dl.data)
+
+start(Dl::DFSetLabeled) = 1 
+next(Dl::DFSetLabeled, i::Int64) = ((getmeta(Dl,i), getrecords(Dl,i), labels(Dl,i)), i + 1)
+done(Dl::DFSetLabeled, i::Int64) = i > length(Dl) 
+length(Dl::DFSetLabeled) = length(Dl.data) #number of records
+
+function vcat{T}(Dl1::DFSetLabeled{T}, Dl2::DFSetLabeled{T})
+    DFSetLabeled(
+      vcat(Dl1.data, Dl2.data),
+      vcat(Dl1.labels, Dl2.labels)
+      )
+end
 
 end #module

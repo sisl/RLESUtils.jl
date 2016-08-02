@@ -32,5 +32,60 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils, DataFrameSets
+using RLESUtils, DataFrameSets, DataFrames
 using Base.Test
+
+dfs = DFSet()
+
+#add some records
+addrecord!(dfs, DataFrame([1 2; 3 4])) 
+addrecord!(dfs, DataFrame([5 6; 7 8])) 
+
+#add some meta info
+meta = getmeta(dfs)
+meta[:name] = ["a1", "b2"]
+
+#make sure add was done correctly
+@test convert(Array, getmeta(dfs)) == [1 "a1"; 2 "b2"]
+@test convert(Array, getrecords(dfs, 1)) == [1 2; 3 4]
+
+#test misc getters
+@test metacolnames(dfs) == ["id", "name"]
+@test recordcolnames(dfs) == ["x1", "x2"]
+@test length(dfs) == 2
+@test anyna(dfs) == false 
+@test filenames(dfs) == ["1.csv.gz", "2.csv.gz"]
+
+#test iterator
+A = collect(dfs)
+@test A[1][1] == [1, "a1"]
+@test A[1][2] == DataFrame([1 2 ; 3 4])
+@test A[2][1] == [2, "b2"]
+@test A[2][2] == DataFrame([5 6; 7 8])
+
+
+#test getindex
+@test convert(Array, getmeta(dfs[1])) == [1 "a1"]
+@test convert(Array, getrecords(dfs[1],1)) == [1 2; 3 4]
+
+#test DFSetLabled
+dl = DFSetLabeled(dfs, [true, false])
+
+@test length(dl) == 2
+@test labels(dl) == [true, false]
+@test convert(Array, getrecords(dl)) == convert(Array, getrecords(dfs))
+@test getmeta(dl) == getmeta(dl)
+
+#test iterator
+A = collect(dl)
+@test A[1][1] == [1, "a1"]
+@test A[1][2] == DataFrame([1 2 ; 3 4])
+@test A[1][3] == true
+@test A[2][1] == [2, "b2"]
+@test A[2][2] == DataFrame([5 6; 7 8])
+@test A[2][3] == false
+
+#test alternate constructor
+dl2 = DFSetLabeled(dfs, :id)
+
+@test labels(dl2) == [1, 2]
