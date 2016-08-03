@@ -34,8 +34,8 @@
 
 module DataFrameSets
 
-export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs, metacolnames, recordcolnames, filenames
-export getmeta, getrecords, labels, metadf
+export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs, writemeta, metacolnames, recordcolnames, filenames
+export getmeta, getrecords, labels, metadf, getmeta_array
 export addrecord!
 
 import Base: start, next, done, length, size, vcat, getindex, convert
@@ -76,12 +76,18 @@ function load_csvs(dir::AbstractString)
     Ds
 end
 
+function writemeta(outdir::AbstractString, meta::DataFrame)
+    mkpath(outdir)
+
+    fname = joinpath(outdir, METAFILE)
+    writetable(fname, meta)
+end
+
 function save_csvs(outdir::AbstractString, Ds::DFSet)
     mkpath(outdir)
 
     #meta file
-    fname = joinpath(outdir, METAFILE)
-    writetable(fname, getmeta(Ds))
+    writemeta(outdir, getmeta(Ds))
 
     #records
     fnames = filenames(Ds; dir=outdir)
@@ -112,7 +118,8 @@ end
 
 getmeta(Ds::DFSet) = Ds.meta
 getrecords(Ds::DFSet) = Ds.records
-getmeta(Ds::DFSet, inds) = squeeze(convert(Array, Ds.meta[inds,:]), 1)
+getmeta(Ds::DFSet, inds) = Ds.meta[inds,:]
+getmeta_array(Ds::DFSet, inds) = squeeze(convert(Array, getmeta(Ds,inds)), 1)
 getrecords(Ds::DFSet, inds) = Ds.records[inds]
 
 
@@ -123,7 +130,7 @@ function addrecord!{T}(Ds::DFSet, record::DataFrame, row::Vector{T}=Any[])
 end
 
 start(Ds::DFSet) = 1 
-next(Ds::DFSet, i::Int64) = ((getmeta(Ds, i), getrecords(Ds, i)), i + 1)
+next(Ds::DFSet, i::Int64) = ((getmeta_array(Ds, i), getrecords(Ds, i)), i + 1)
 done(Ds::DFSet, i::Int64) = i > length(Ds) 
 length(Ds::DFSet) = length(Ds.records) #number of records
 
@@ -177,6 +184,7 @@ type DFSetLabeled{T}
     data::DFSet
     labels::Vector{T}
 end
+DFSetLabeled(Ds::DFSet, labels::DataArray) = DFSetLabeled(Ds, convert(Array, labels))
 function DFSetLabeled(Ds::DFSet, metacolumn::Symbol)
     meta = getmeta(Ds)
     labels = convert(Array, meta[metacolumn])
@@ -184,12 +192,16 @@ function DFSetLabeled(Ds::DFSet, metacolumn::Symbol)
     Dl
 end
 
-getindex{T}(Dl::DFSetLabeled{T}, inds) = DFSetLabeled(Dl.meta[inds], Dl.records[inds], Dl.labels[inds])
+function getindex{T}(Dl::DFSetLabeled{T}, inds) 
+    out = DFSetLabeled(Dl.data[inds], Dl.labels[inds])
+    out
+end
 
 getmeta(Dl::DFSetLabeled) = getmeta(Dl.data)
 getrecords(Dl::DFSetLabeled) = getrecords(Dl.data)
 labels(Dl::DFSetLabeled) = Dl.labels
 getmeta(Dl::DFSetLabeled, inds) = getmeta(Dl.data, inds)
+getmeta_array(Dl::DFSetLabeled, inds) = getmeta_array(Dl.data, inds)
 getrecords(Dl::DFSetLabeled, inds) = getrecords(Dl.data, inds)
 labels(Dl::DFSetLabeled, inds) = Dl.labels[inds]
 
@@ -221,7 +233,7 @@ end
 anyna(Dl::DFSetLabeled) = anyna(Dl.data)
 
 start(Dl::DFSetLabeled) = 1 
-next(Dl::DFSetLabeled, i::Int64) = ((getmeta(Dl,i), getrecords(Dl,i), labels(Dl,i)), i + 1)
+next(Dl::DFSetLabeled, i::Int64) = ((getmeta_array(Dl,i), getrecords(Dl,i), labels(Dl,i)), i + 1)
 done(Dl::DFSetLabeled, i::Int64) = i > length(Dl) 
 length(Dl::DFSetLabeled) = length(Dl.data) #number of records
 

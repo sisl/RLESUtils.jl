@@ -44,7 +44,8 @@ using RLESUtils, LatexUtils
 using TikzPictures
 using JSON
 
-typealias JDict Dict{AbstractString,Any}
+#TODO: avoid typealias by wrapping in a type
+typealias JDict Dict{ASCIIString,Any}
 
 function print_element!(io::IOBuffer, d::JDict)
   name = d["name"] |> escape_latex
@@ -54,6 +55,7 @@ function print_element!(io::IOBuffer, d::JDict)
       edge_label = d["edgeLabel"][i]
       print(io, "\\edge node[draw=none,bottom color=orange!25]{$(edge_label)}; ")
     end
+    child = convert(JDict, child)
     print_element!(io, child)
   end
   print(io, "]")
@@ -67,6 +69,7 @@ function plottree(filename::AbstractString;
                   output::AbstractString="TEXPDF")
   f = open(filename, "r")
   d = JSON.parse(f)
+  d = convert(JDict, d) #convert is used because JSON.parse returns Dict{UTF8String}...
   close(f)
   plottree(d, outfileroot=outfileroot, output=output)
 end
