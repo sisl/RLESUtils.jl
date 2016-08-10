@@ -39,6 +39,7 @@ export getmeta, getrecords, labels, metadf, getmeta_array
 export addrecord!
 
 import Base: start, next, done, length, size, vcat, getindex, convert
+import Base: maximum, minimum
 
 using RLESUtils, FileUtils
 using Reexport
@@ -157,9 +158,15 @@ function size(Ds::DFSet; check::Bool=false)
     nc = ncol(recs[1])
 
     if check
-        for i = 1::length(recs)
-            @assert nr == nrow(recs[i])
-            @assert nc == ncol(recs[i])
+        for i = 1:length(recs)
+            if nr != nrow(recs[i])
+                println("row mismatch at $i")
+                @assert false
+            end
+            if nc != ncol(recs[i])
+                println("column mismatch at $i")
+                @assert false
+            end
         end
     end
     (ndat, nr, nc)
@@ -179,15 +186,25 @@ function convert(::Type{Array}, Ds::DFSet)
     A 
 end
 
+function maximum(Ds::DFSet, col::Symbol)
+    maximum(map(D->maximum(D[col]), getrecords(Ds)))
+end
+
+function minimum(Ds::DFSet, col::Symbol)
+    minimum(map(D->minimum(D[col]), getrecords(Ds)))
+end
+
 ### DFSetLabeled
 type DFSetLabeled{T}
     data::DFSet
     labels::Vector{T}
 end
+
 DFSetLabeled(Ds::DFSet, labels::DataArray) = DFSetLabeled(Ds, convert(Array, labels))
-function DFSetLabeled(Ds::DFSet, metacolumn::Symbol)
+function DFSetLabeled(Ds::DFSet, metacolumn::Symbol; transform::Function=identity)
     meta = getmeta(Ds)
     labels = convert(Array, meta[metacolumn])
+    labels = map(transform, labels)
     Dl = DFSetLabeled(Ds, labels)
     Dl
 end
@@ -230,6 +247,15 @@ function addrecord!{Tl,Tr}(Dl::DFSetLabeled{Tl}, record::DataFrame,
     push!(Dl.labels, label)
 end
 
+"""
+returns the size of each record
+if check is true, then check that all records have the same size
+else just return the size of the first one and assume it's correct
+"""
+function size(Dl::DFSetLabeled; check::Bool=false)
+    size(Dl.data; check=check)
+end
+
 anyna(Dl::DFSetLabeled) = anyna(Dl.data)
 
 start(Dl::DFSetLabeled) = 1 
@@ -243,5 +269,8 @@ function vcat{T}(Dl1::DFSetLabeled{T}, Dl2::DFSetLabeled{T})
       vcat(Dl1.labels, Dl2.labels)
       )
 end
+
+maximum(Dl::DFSetLabeled, col::Symbol) = maximum(Dl.data, col)
+minimum(Dl::DFSetLabeled, col::Symbol) = minimum(Dl.data, col)
 
 end #module
