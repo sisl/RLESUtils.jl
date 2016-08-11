@@ -35,7 +35,7 @@
 module DataFrameSets
 
 export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs, writemeta, metacolnames, recordcolnames, filenames
-export getmeta, getrecords, labels, metadf, getmeta_array
+export getmeta, getrecords, labels, metadf, getmeta_array, getdata, reset_ids!
 export addrecord!
 
 import Base: start, next, done, length, size, vcat, getindex, convert
@@ -123,6 +123,7 @@ getmeta(Ds::DFSet, inds) = Ds.meta[inds,:]
 getmeta_array(Ds::DFSet, inds) = squeeze(convert(Array, getmeta(Ds,inds)), 1)
 getrecords(Ds::DFSet, inds) = Ds.records[inds]
 
+reset_ids!(Ds::DFSet) = Ds.meta[:id] = 1:nrow(Ds.meta)
 
 function addrecord!{T}(Ds::DFSet, record::DataFrame, row::Vector{T}=Any[])
     id = length(Ds) + 1
@@ -221,6 +222,9 @@ getmeta(Dl::DFSetLabeled, inds) = getmeta(Dl.data, inds)
 getmeta_array(Dl::DFSetLabeled, inds) = getmeta_array(Dl.data, inds)
 getrecords(Dl::DFSetLabeled, inds) = getrecords(Dl.data, inds)
 labels(Dl::DFSetLabeled, inds) = Dl.labels[inds]
+getdata(Dl::DFSetLabeled) = Dl.data
+
+reset_ids!(Dl::DFSetLabeled) = reset_ids!(Dl.data) 
 
 """
 set labels, same type as existing
