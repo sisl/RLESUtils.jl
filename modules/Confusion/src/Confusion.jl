@@ -39,6 +39,10 @@ export confusion, truepos, trueneg, falsepos, falseneg, confusion_indices, truep
 """
 Confusion matrix metrics for a binary classifier
 returns a dictionary with entries ASCIIString[truepos,trueneg,falsepos,falseneg]
+truepos means you predicted positive and you were correct
+trueneg means you predicted negative and you were correct
+falsepos means you predicted positive and you were incorrect
+falseneg means you predicted negative and you were incorrect
 """
 function confusion(pred::AbstractVector{Bool}, truth::AbstractVector{Bool})
     d = Dict{ASCIIString,Int64}()
