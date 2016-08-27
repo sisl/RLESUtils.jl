@@ -32,7 +32,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-#Deprecated.  No replacement yet though.
+#DEPRECATED!  Do not use for new projects!! No replacement yet though.
 # Converts a type object to a json-compatible Dict for saving.  Easy recovery to original type.
 # Supports arrays, but not Unions
 
@@ -45,13 +45,13 @@ using JSON
 using DataStructures
 using RLESUtils, StringUtils
 
-typealias ObjDict Dict{AbstractString, Any}
+typealias ObjDict{T<:AbstractString} Dict{T,Any}
 typealias Primitive Union{Integer, Real, AbstractString, Symbol, Void}
 
 function to_dict(x)
-  d = ObjDict()
+  d = ObjDict{ASCIIString}()
   d["type"] = string(typeof(x))
-  d["data"] = ObjDict()
+  d["data"] = ObjDict{ASCIIString}()
   for sym in fieldnames(x)
     d["data"][string(sym)] = to_dict(x.(sym))
   end
@@ -59,7 +59,7 @@ function to_dict(x)
 end
 
 function to_dict(x::Primitive)
-  d = ObjDict()
+  d = ObjDict{ASCIIString}()
   d["type"] = string(typeof(x))
   d["data"] = x
   return d
@@ -73,15 +73,15 @@ function to_dict(x::Array)
     end
     return out
   else
-    d = ObjDict()
+    d = ObjDict{ASCIIString}()
     return map(to_dict, x)
   end
 end
 
 function to_dict(x::Dict)
-  d = ObjDict()
+  d = ObjDict{ASCIIString}()
   d["type"] = string(typeof(x))
-  d["data"] = ObjDict()
+  d["data"] = ObjDict{ASCIIString}()
   for (k, v) in x
     d["data"][string(k)] = to_dict(v)
   end
@@ -89,7 +89,7 @@ function to_dict(x::Dict)
 end
 
 function to_dict(x::Expr)
-  d = ObjDict()
+  d = ObjDict{ASCIIString}()
   d["type"] = string(typeof(x))
   d["data"] = string(x)
   return d
@@ -97,14 +97,14 @@ end
 
 function to_dict(x::Function)
   #warn("Function excluded in Obj2Dict") #drop silently or verbosely?
-  d = ObjDict()
+  d = ObjDict{ASCIIString}()
   d["type"] = string(Function)
   d["data"] = 0 #not supported at the moment
   return d
 end
 
 function to_dict{T}(x::Stack{Deque{T}})
-  d = ObjDict()
+  d = ObjDict{ASCIIString}()
   d["type"] = string(typeof(x))
   d["data"] = convert(Array, x)
   return d
