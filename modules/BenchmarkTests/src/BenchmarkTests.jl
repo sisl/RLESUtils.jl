@@ -32,5 +32,50 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils, TreeToJSON
-using Base.Test
+module BenchmarkTests
+
+export test_matmul, test_map, test_loop, test_all
+
+function test_matmul(N::Int64=100000; verbose::Bool=true)
+    A = rand(N,N)
+    B = rand(N,N)
+    tic()
+    A * B
+    elapsed = toq()
+    if verbose
+        println("test_matmul: $elapsed seconds")
+    end
+    return elapsed 
+end
+
+function test_map(N::Int64=10000000; verbose::Bool=true)
+    A = rand(N)
+    tic()
+    map!(x->x+1, A)
+    elapsed = toq()
+    if verbose
+        println("test_map: $elapsed seconds")
+    end
+    return elapsed 
+end
+
+function test_loop(N::Int64=10000000; verbose::Bool=true)
+    A = rand(N)
+    tic()
+    for i=1:length(A)
+        A[i] += 1
+    end
+    elapsed = toq()
+    if verbose
+        println("test_map: $elapsed seconds")
+    end
+    return elapsed 
+end
+
+function test_all()
+    test_matmul()
+    test_map()
+    test_loop()
+end
+
+end #module
