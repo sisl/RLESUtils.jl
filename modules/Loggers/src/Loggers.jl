@@ -32,6 +32,24 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
+"""
+Example usage:\n
+#create logger\n
+logs = TaggedDFLogger()\n
+add_folder!(logs, "mylog1", [Int64, Float64], [:x1, :x2])\n
+add_folder!(logs, "mylog2", [Bool, ASCIIString], [:y1, :y2])\n
+#create observer\n
+observer = Observer()\n
+add_observer(observer, "signal1", push!_f(logs, "mylog1"))\n
+#in executing code, pass data into observer\n
+@notify_observer(observer, "signal1", [1, 2.0]) \n
+#when done, save to file\n
+save_log("logfile.txt", logs)\n
+#load it back to view\n
+logs = load_log(TaggedDFLogger, "logfile.txt")\n
+logs["mylog1"]\n
+logs["mylog2"]
+"""
 module Loggers
 
 export Logger, get_log, empty!, push!,setindex!, getindex, haskey, start, next, done, length,

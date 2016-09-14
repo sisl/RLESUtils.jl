@@ -35,7 +35,7 @@
 module MathUtils
 
 export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, gini_impurity, gini_from_counts
-export SEM_ymax, SEM_ymin
+export SEM, SEM_ymax, SEM_ymin
 export sum_to_1
 export logxpy
 
@@ -68,12 +68,29 @@ function quantize(x::AbstractFloat, b::AbstractFloat)
   return b * (d + round(r / b))
 end
 
-function SEM_ymax(ys)
-  mean(ys) .+ std(ys) / sqrt(length(ys))
+"""
+Computes the upper error bar in standard error of the mean
+"""
+function SEM_ymax{T}(ys::AbstractVector{T})
+    ymax = mean(ys) + SEM(ys)
+    ymax
 end
 
-function SEM_ymin(ys)
-  mean(ys) .- std(ys) / sqrt(length(ys))
+"""
+Computes the lower error bar in standard error of the mean
+"""
+function SEM_ymin{T}(ys::AbstractVector{T})
+    ymin = mean(ys) - SEM(ys)
+    ymin
+end
+
+"""
+Computes the standard error of the mean
+"""
+function SEM{T}(ys::AbstractVector{T})
+    s = std(ys)
+    sem = isnan(s) ? zero(T) : s / sqrt(length(ys))
+    sem
 end
 
 function gini_impurity{T}(v::AbstractVector{T})
@@ -113,11 +130,10 @@ end
 
 sum_to_1(v::Vector{Float64}) = v ./ sum(v)
 
-using Debug
-#"""
-#Compute log(x+y) from log(x) and log(y). Exponentiates safely by first sorting and
-#uses identity log(x+y) = log(x) + log(1+y/x)
-#"""
+"""
+Compute log(x+y) from log(x) and log(y). Exponentiates safely by first sorting and
+uses identity log(x+y) = log(x) + log(1+y/x)
+"""
 function logxpy(logx::Float64, logy::Float64)
   if logx == logy == -Inf #special case where identity breaks down
     return -Inf
