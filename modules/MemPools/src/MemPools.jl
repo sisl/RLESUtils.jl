@@ -6,7 +6,7 @@ module MemPools
 
 export MemPool, checkin, checkout
 
-import Base: length, eltype
+import Base: length, eltype, empty!
 
 using DataStructures
 
@@ -57,6 +57,13 @@ function allocate{T}(rental::MemPool{T})
   end
   rental.n_allocs += 1
   return rental.T()
+end
+
+function empty!{T}(rental::MemPool{T})
+    empty!(rental.inventory)
+    rental.n_allocs = 0
+    rental.max_allocs = 0
+    rental
 end
 
 end #module

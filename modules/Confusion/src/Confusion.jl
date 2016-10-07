@@ -34,7 +34,26 @@
 
 module Confusion
 
-export confusion, truepos, trueneg, falsepos, falseneg, confusion_indices, truepos_indices, trueneg_indices, falsepos_indices, falseneg_indices
+export ConfusionMat, ConfusionIndices
+export truepos, trueneg, falsepos, falseneg 
+export truepos_indices, trueneg_indices, falsepos_indices, falseneg_indices
+export recall, accuracy, f1_score
+
+import Base.precision
+
+type ConfusionMat
+    truepos::Int64
+    trueneg::Int64
+    falsepos::Int64
+    falseneg::Int64
+end
+
+type ConfusionIndices
+    truepos::Vector{Int64}
+    trueneg::Vector{Int64}
+    falsepos::Vector{Int64}
+    falseneg::Vector{Int64}
+end
 
 """
 Confusion matrix metrics for a binary classifier
@@ -44,25 +63,41 @@ trueneg means you predicted negative and you were correct
 falsepos means you predicted positive and you were incorrect
 falseneg means you predicted negative and you were incorrect
 """
-function confusion(pred::AbstractVector{Bool}, truth::AbstractVector{Bool})
-    d = Dict{ASCIIString,Int64}()
-    d["truepos"] = truepos(pred, truth) 
-    d["trueneg"] = trueneg(pred, truth) 
-    d["falsepos"] = falsepos(pred, truth) 
-    d["falseneg"] = falseneg(pred, truth) 
-    d
+function ConfusionMat(pred::AbstractVector{Bool}, truth::AbstractVector{Bool})
+    ConfusionMat( 
+        truepos(pred, truth),
+        trueneg(pred, truth),
+        falsepos(pred, truth),
+        falseneg(pred, truth) 
+        )
 end
 
 """
 Same as confusion but returns the corresponding indices
 """
-function confusion_indices(pred::AbstractVector{Bool}, truth::AbstractVector{Bool})
-    d = Dict{ASCIIString,Vector{Int64}}()
-    d["truepos"] = truepos_indices(pred, truth) 
-    d["trueneg"] = trueneg_indices(pred, truth) 
-    d["falsepos"] = falsepos_indices(pred, truth) 
-    d["falseneg"] = falseneg_indices(pred, truth) 
-    d
+function ConfusionIndices(pred::AbstractVector{Bool}, truth::AbstractVector{Bool})
+    ConfusionIndices(
+        truepos_indices(pred, truth),
+        trueneg_indices(pred, truth),
+        falsepos_indices(pred, truth),
+        falseneg_indices(pred, truth) 
+        )
+end
+
+function precision(m::ConfusionMat)
+    m.truepos / (m.truepos + m.falsepos)
+end
+
+function recall(m::ConfusionMat)
+    m.truepos / (m.truepos + m.falseneg)
+end
+
+function accuracy(m::ConfusionMat)
+    (m.truepos + m.trueneg) / (m.truepos + m.falsepos + m.trueneg + m.falseneg)
+end
+
+function f1_score(m::ConfusionMat)
+    (2*m.truepos) / (2*m.truepos + m.falsepos + m.falseneg)
 end
 
 "pred=1, truth=1"

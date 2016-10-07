@@ -56,7 +56,7 @@ export Logger, get_log, empty!, push!,setindex!, getindex, haskey, start, next, 
       push!_f, append_push!_f, save_log, load_log, keys, values, set!
 export ArrayLogger
 export DataFrameLogger
-export TaggedDFLogger, add_folder!
+export TaggedDFLogger, add_folder!, add_varlist!
 
 using DataFrames
 import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, values, append!
@@ -125,6 +125,10 @@ function append_push!_f(logger::TaggedDFLogger, tag::AbstractString, appendx)
     push!(x, appendx...)
     return push!(logger, tag, x)
   end
+end
+
+function add_varlist!(logger::TaggedDFLogger, tag::AbstractString)
+    add_folder!(logger, tag, [ASCIIString, Any], ["variable", "value"])
 end
 
 function add_folder!{T<:Type,S<:AbstractString}(logger::TaggedDFLogger, tag::AbstractString, eltypes::Vector{T}, elnames::Vector{S})
