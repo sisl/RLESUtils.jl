@@ -32,6 +32,16 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
+"""
+Evaluates an expression without compiling it.
+Uses AST and symbol lookups. Only supports :call expressions at the moment.
+Use FMap to specify functions
+Use VMap to specify values 
+Example:
+smap = SymbolMap(FMap(:f1 => f1), VMap(:x => x))
+ex = :(f1(x))
+interpret(smap, ex)
+"""
 module Interpreter
 
 export FMap, VMap, SymbolMap, interpret
