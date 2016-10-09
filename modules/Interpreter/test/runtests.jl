@@ -43,14 +43,11 @@ subtract(x,y) = x - y
 multiply2(x) = 2x
 
 i = 5
-f = FMap(:D => D, :add => add, :subtract => subtract, :multiply2 => multiply2)
-v = VMap(:i => i)
-smap = SymbolMap(f, v)
-
+tab = SymbolTable(:D => D, :add => add, :subtract => subtract, :multiply2 => multiply2, :i => i)
 ex = :(add(D(i),D(2)))
 @eval f1(i) = $ex
 
-result = interpret(smap, ex)
+result = interpret(tab, ex)
 
 @test f1(i) == result
 

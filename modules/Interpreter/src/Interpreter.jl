@@ -38,31 +38,25 @@ Uses AST and symbol lookups. Only supports :call expressions at the moment.
 Use FMap to specify functions
 Use VMap to specify values 
 Example:
-smap = SymbolMap(FMap(:f1 => f1), VMap(:x => x))
-ex = :(f1(x))
-interpret(smap, ex)
+tab = SymbolTable(:f => f, :x => x)
+ex = :(f(x))
+interpret(tab, ex)
 """
 module Interpreter
 
-export FMap, VMap, SymbolMap, interpret
+export SymbolTable, interpret
 
-typealias FMap Dict{Symbol,Function}
-typealias VMap Dict{Symbol,Any}
+typealias SymbolTable Dict{Symbol,Any}
 
-type SymbolMap
-    f::FMap #functions
-    v::VMap #values
-end
+interpret(tab::SymbolTable, x::Any) = x
+interpret(tab::SymbolTable, s::Symbol) = tab[s]
 
-interpret(smap::SymbolMap, x::Any) = x
-interpret(smap::SymbolMap, s::Symbol) = smap.v[s]
-
-function interpret(smap::SymbolMap, ex::Expr)
+function interpret(tab::SymbolTable, ex::Expr)
     if ex.head != :call 
         error("Expression type not supported")
     end
-    f = smap.f[ex.args[1]]
-    args = [interpret(smap,ex.args[i]) for i = 2:endof(ex.args)]
+    f = tab[ex.args[1]]
+    args = [interpret(tab,ex.args[i]) for i = 2:endof(ex.args)]
     result = f(args...)
     result
 end
