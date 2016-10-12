@@ -50,14 +50,15 @@ function parsekey(keyfile::AbstractString)
     key
 end
 
-function trigger_from_keyfile(event::AbstractString, keyfile::AbstractString)
+function trigger_from_keyfile(event::AbstractString, keyfile::AbstractString; kwargs...)
     key = parsekey(keyfile)
-    trigger(event, key)
+    trigger(event, key; kwargs...)
 end
      
-function trigger(event::AbstractString, key::AbstractString)
+function trigger(event::AbstractString, key::AbstractString; 
+    json::Dict{ASCIIString,ASCIIString}=Dict{ASCIIString,ASCIIString}())
     url = form_trigger_url(event, key)
-    post(url)
+    post(url; json=json)
 end
 
 end #module
