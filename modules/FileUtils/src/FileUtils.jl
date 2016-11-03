@@ -34,7 +34,9 @@
 
 module FileUtils
 
-export readdir_ext, readdir_dir, textfile, filenamefriendly
+export readdir_ext, readdir_dir, textfile, filenamefriendly, replace_in_files, replace_text
+
+using GZip
 
 #readdir and filter for ext
 function readdir_ext(ext::AbstractString, dir::AbstractString=".")
@@ -75,6 +77,36 @@ function filenamefriendly(s::AbstractString)
   s = replace(s, ":", "")
   s = replace(s, ",", "")
   s
+end
+
+function replace_in_files{T<:AbstractString}(files::Vector{T}, src::AbstractString, 
+    dst::AbstractString; outdir::AbstractString="./converted", inplace::Bool=false)
+    if !inplace
+        mkpath(outdir)
+    end
+    for file in files
+        fileroot, fileext = splitext(file)
+        if fileext == ".gz" #Gzip format
+            replace_text(file, src, dst, outdir, fopen=GZip.open, inplace=inplace)
+        else #assume ascii-compatible
+            replace_text(file, src, dst, outdir, fopen=open, inplace=inplace)
+        end
+    end
+end
+
+function replace_text(file::AbstractString, src::AbstractString, dst::AbstractString, 
+    outdir::AbstractString; fopen::Function=open, inplace::Bool=false)
+  text = fopen(readall, file)
+  text = replace(text, src, dst)
+
+  if inplace
+      outpath = file 
+  else
+      outpath = joinpath(outdir, basename(file))
+  end
+  fout = fopen(outpath, "w")
+  write(fout, text)
+  close(fout)
 end
 
 end #module
