@@ -34,7 +34,7 @@
 
 module FileUtils
 
-export readdir_ext, readdir_dir, textfile, filenamefriendly, replace_in_files, replace_text
+export readdir_ext, readdir_dir, textfile, filenamefriendly, replace_in_files, replace_text, isidentical
 
 using GZip
 
@@ -107,6 +107,31 @@ function replace_text(file::AbstractString, src::AbstractString, dst::AbstractSt
   fout = fopen(outpath, "w")
   write(fout, text)
   close(fout)
+end
+
+"""
+compares two files byte by byte and returns whether they are identical
+"""
+function isidentical(file1::AbstractString, file2::AbstractString)
+    f1 = open(file1, "r")
+    f2 = open(file2, "r")
+    issame = true
+
+    #two ways to exit, bytes don't match or one file ends before other
+    while !eof(f1) && !eof(f2)
+        if read(f1, UInt8) != read(f2, UInt8)
+            issame = false
+            break
+        end
+    end
+    if eof(f1) != eof(f2)
+        issame = false
+    end
+
+    close(f1)
+    close(f2)
+
+    issame
 end
 
 end #module
