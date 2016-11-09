@@ -38,6 +38,8 @@
 
 module RunCases
 
+import Compat.ASCIIString
+
 export Case, Cases, generate_cases, add_field!, get, set!, savecase, loadcase
 export get, start, done, next, length
 

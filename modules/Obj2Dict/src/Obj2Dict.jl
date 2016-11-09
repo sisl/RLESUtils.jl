@@ -53,7 +53,7 @@ function to_dict(x)
   d["type"] = string(typeof(x))
   d["data"] = ObjDict{ASCIIString}()
   for sym in fieldnames(x)
-    d["data"][string(sym)] = to_dict(x.(sym))
+    d["data"][string(sym)] = to_dict(getfield(x, sym))
   end
   return d
 end
@@ -113,7 +113,7 @@ end
 function set_fields!(x, d::ObjDict; verbose::Bool=true)
   for sym in fieldnames(x)
     if haskey(d["data"], string(sym))
-      x.(sym) = to_obj(d["data"][string(sym)])
+      setfield!(x, sym, to_obj(d["data"][string(sym)]))
     elseif verbose
       warn("Obj2Dict::set_fields!: ($sym) not found!")
     end
