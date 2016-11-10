@@ -34,7 +34,10 @@
 
 module FileUtils
 
-export readdir_ext, readdir_dir, textfile, filenamefriendly, replace_in_files, replace_text, isidentical
+export readdir_ext, readdir_dir, textfile, filenamefriendly, replace_in_files, 
+    replace_text, isidentical 
+
+import Compat.ASCIIString
 
 using GZip
 
