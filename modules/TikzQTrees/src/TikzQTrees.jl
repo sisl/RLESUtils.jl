@@ -40,6 +40,7 @@ module TikzQTrees
 
 export plottree, JDict
 
+import Compat.ASCIIString
 using RLESUtils, LatexUtils
 using TikzPictures
 using JSON

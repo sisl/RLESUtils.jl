@@ -37,6 +37,8 @@ module Vectorizer
 
 export vecnames, vectypes, vectorize
 
+import Compat.ASCIIString
+
 vecnames{T}(obj::T) = fieldnames(obj)
 
 function vectypes{T}(obj::T)

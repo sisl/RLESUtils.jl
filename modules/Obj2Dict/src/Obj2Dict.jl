@@ -40,6 +40,8 @@ module Obj2Dict
 
 #export to_obj, to_dict, save_obj, load_obj
 
+import Compat.ASCIIString
+
 import Base.convert
 using JSON
 using DataStructures

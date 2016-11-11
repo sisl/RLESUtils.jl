@@ -36,6 +36,8 @@ module DataBalancer
 
 export balance_class
 
+import Compat.ASCIIString
+
 using Datasets
 using DataFrameSets
 

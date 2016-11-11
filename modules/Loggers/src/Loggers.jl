@@ -58,6 +58,8 @@ export ArrayLogger
 export DataFrameLogger
 export TaggedDFLogger, add_folder!, add_varlist!
 
+import Compat.ASCIIString
+
 using DataFrames
 import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, values, append!
 
@@ -93,7 +95,7 @@ function DataFrameLogger{T<:Type}(eltypes::Vector{T}, elnames::Vector{Symbol}=Sy
 end
 
 function DataFrameLogger{T<:Type,S<:AbstractString}(eltypes::Vector{T}, elnames::Vector{S})
-  return DataFrameLogger(eltypes, map(symbol, elnames))
+  return DataFrameLogger(eltypes, map(Symbol, elnames))
 end
 
 push!_f(logger::DataFrameLogger) = x -> push!(logger, x)
@@ -132,7 +134,7 @@ function add_varlist!(logger::TaggedDFLogger, tag::AbstractString)
 end
 
 function add_folder!{T<:Type,S<:AbstractString}(logger::TaggedDFLogger, tag::AbstractString, eltypes::Vector{T}, elnames::Vector{S})
-  return add_folder!(logger, tag, eltypes, map(symbol, elnames))
+  return add_folder!(logger, tag, eltypes, map(Symbol, elnames))
 end
 
 function add_folder!{T<:Type}(logger::TaggedDFLogger, tag::AbstractString, eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])

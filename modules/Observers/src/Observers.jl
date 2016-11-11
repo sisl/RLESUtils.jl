@@ -36,6 +36,7 @@ module Observers
 
 export Observer, add_observer, @notify_observer, @notify_observer_default
 
+import Compat.ASCIIString
 import Base: empty!, delete!
 
 type Observer

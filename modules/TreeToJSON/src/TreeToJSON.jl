@@ -43,6 +43,7 @@ module TreeToJSON
 
 export to_jdict, write_json, VisCalls, JDict
 
+import Compat.ASCIIString
 using JSON
 
 typealias JDict Dict{AbstractString,Any}

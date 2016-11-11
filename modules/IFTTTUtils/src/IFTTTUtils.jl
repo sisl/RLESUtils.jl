@@ -36,6 +36,8 @@ module IFTTTUtils
 
 export trigger, trigger_from_keyfile
 
+import Compat.ASCIIString
+
 using Requests
 
 const BASEURL = "https://maker.ifttt.com"

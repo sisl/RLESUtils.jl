@@ -36,6 +36,8 @@ module LookupCallbacks
 
 export LookupCallback
 
+import Compat.ASCIIString
+
 type LookupCallback
   lookups::Vector{ASCIIString}
   callback::Function

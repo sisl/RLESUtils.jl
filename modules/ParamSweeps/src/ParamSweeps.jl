@@ -42,7 +42,7 @@ export KWParamSweep
 
 using Iterators
 
-import Base: empty!, push!, run, start, next, done, keys, values
+import Base: empty!, push!, run, start, next, done, keys, values, length
 
 typealias Iterable Any
 
@@ -75,7 +75,6 @@ type KWParamSweep
   argsrc::Dict{Symbol,Iterable} #keyed iterables, cartesian product will be called on f
 end
 
-KWParamSweep(f::Function) = KWParamSweep(f, Dict{Symbol,Iterable}())
 KWParamSweep(f::Function; kwargs::Iterable...) = KWParamSweep(f, Dict{Symbol,Iterable}(kwargs))
 
 function run(script::KWParamSweep)
@@ -105,6 +104,7 @@ function next(script::KWParamSweep, s::KWIteratorState)
 end
 
 done(script::KWParamSweep, s::KWIteratorState) = done(s.it, s.state)
+length(script::KWParamSweep) = prod(map(length, values(script)))
 
 keys(script::KWParamSweep) = keys(script.argsrc)
 values(script::KWParamSweep) = values(script.argsrc)

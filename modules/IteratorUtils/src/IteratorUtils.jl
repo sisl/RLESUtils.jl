@@ -36,7 +36,7 @@ module IteratorUtils
 
 export roundrobin
 
-import Base: start, next, done
+import Base: start, next, done, length
 
 typealias Iterable Any
 
@@ -92,6 +92,10 @@ end
 #cycle through indices
 function nextindex(index::Int64, maxindex::Int64)
   index < maxindex ? index + 1 : 1
+end
+
+function length(iter::RoundRobinIter)
+    sum(map(length, iter.subiters))
 end
 
 end #module
