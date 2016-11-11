@@ -36,7 +36,9 @@ module GitUtils
 
 export get_SHA, pkg_SHA, installed_SHA
 
-installed_SHA() = map(k -> (symbol(k), pkg_SHA(k)), keys(Pkg.installed()))
+using Compat
+
+installed_SHA() = map(k -> (Symbol(k), pkg_SHA(k)), keys(Pkg.installed()))
 
 pkg_SHA(pkg::AbstractString) = get_SHA(Pkg.dir(pkg))
 
@@ -45,7 +47,7 @@ function get_SHA(dir::AbstractString="./")
   sha = ""
   try
     cd(dir)
-    sha = readall(`git rev-parse HEAD`)
+    sha = readstring(`git rev-parse HEAD`)
     sha = replace(sha, "\n", "") #remove trailing newline
   catch
     sha = ""

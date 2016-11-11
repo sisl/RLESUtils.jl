@@ -61,4 +61,9 @@ end
 
 Base.done(iter::TreeIt, state) = isempty(iter.opennodes)
 
+#workaround: iterator traits on v0.5 for collect(), not needed for v0.4
+if VERSION >= v"0.5.0-dev+3305"
+    Base.iteratorsize(iter::TreeIt) = Base.SizeUnknown() 
+end
+
 end #module
