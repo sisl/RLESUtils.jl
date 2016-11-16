@@ -36,6 +36,7 @@ module IFTTTUtils
 
 export trigger, trigger_from_keyfile
 
+using Compat
 import Compat.ASCIIString
 
 using Requests
@@ -48,7 +49,7 @@ function form_trigger_url(event::AbstractString, key::AbstractString)
 end
 
 function parsekey(keyfile::AbstractString)
-    key = readall(keyfile)
+    key = readstring(keyfile)
     key
 end
 
