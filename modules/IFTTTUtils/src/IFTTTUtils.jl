@@ -34,7 +34,7 @@
 
 module IFTTTUtils
 
-export trigger, trigger_from_keyfile
+export sendifttt, trigger, trigger_from_keyfile
 
 using Compat
 import Compat.ASCIIString
@@ -42,6 +42,7 @@ import Compat.ASCIIString
 using Requests
 
 const BASEURL = "https://maker.ifttt.com"
+const EVENT = "jl_notify"
 
 function form_trigger_url(event::AbstractString, key::AbstractString)
     url = BASEURL * "/trigger/$(event)/with/key/$key"
@@ -51,6 +52,18 @@ end
 function parsekey(keyfile::AbstractString)
     key = readstring(keyfile)
     key
+end
+
+function sendifttt(keyfile::AbstractString, event::AbstractString=EVENT; 
+    value1::ASCIIString="",
+    value2::ASCIIString="",
+    value3::ASCIIString="") 
+
+    trigger_from_keyfile(event, keyfile; 
+        json=Dict{ASCIIString,ASCIIString}(
+            "value1" => value1,
+            "value2" => value2,
+            "value3" => value3))
 end
 
 function trigger_from_keyfile(event::AbstractString, keyfile::AbstractString; kwargs...)

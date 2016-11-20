@@ -34,7 +34,7 @@
 
 module RandUtils
 
-export randfloat
+export randfloat, rand_element
 
 """
 Generate a random float in the range xmin to xmax, optionally providing the random number generator rng
@@ -46,6 +46,13 @@ end
 function randfloat(xmin::Float64, xmax::Float64)
     r = xmin + rand() * (xmax - xmin)
     r
+end
+"""
+Choose a random element in a vector
+"""
+function rand_element{T}(a::Vector{T})
+    i = rand(1:length(a))
+    a[i]
 end
 
 
