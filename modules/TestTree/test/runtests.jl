@@ -32,49 +32,12 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-"""
-Iterator for tree structures, depth-first traversal
-"""
-module TreeIterators 
+using RLESUtils, TestTree
+using Base.Test
 
-export tree_iter, traverse
-
-get_children(node) = error("user should override get_children().  Takes
-    a node object and returns an iterable of children") 
-
-type TreeIt
-    opennodes::Vector{Any}
+function test1()
+    tree = simple_tree1()
+    tree
 end
 
-tree_iter(root) = TreeIt([root])
-
-Base.start(iter::TreeIt) = 0 
-Base.next(iter::TreeIt, state) = (expand!(iter), state) 
-
-function expand!(iter::TreeIt)
-    node = pop!(iter.opennodes) 
-    children = get_children(node) #implemented by user
-    for child in reverse(children)
-        push!(iter.opennodes, child)
-    end
-    node
-end
-
-Base.done(iter::TreeIt, state) = isempty(iter.opennodes)
-
-#workaround: iterator traits on v0.5 for collect(), not needed for v0.4
-if VERSION >= v"0.5.0-dev+3305"
-    Base.iteratorsize(iter::TreeIt) = Base.SizeUnknown() 
-end
-
-"""
-Traverse tree, apply f at each node, combine the results using op.
-"""
-function traverse(f::Function, op::Function, node)
-    v = f(node) 
-    for child in get_children(node)
-        v = op(v, traverse(f, op, child)) 
-    end
-    v
-end
-end #module
+test1()

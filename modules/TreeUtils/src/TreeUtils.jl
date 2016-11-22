@@ -33,48 +33,36 @@
 # *****************************************************************************
 
 """
-Iterator for tree structures, depth-first traversal
+A collection of tools for trees
 """
-module TreeIterators 
+module TreeUtils
 
-export tree_iter, traverse
+export rand_node
 
-get_children(node) = error("user should override get_children().  Takes
-    a node object and returns an iterable of children") 
+using RLESUtils, TreeIterators
+using Base: Random
+import TreeIterators.get_children
 
-type TreeIt
-    opennodes::Vector{Any}
-end
-
-tree_iter(root) = TreeIt([root])
-
-Base.start(iter::TreeIt) = 0 
-Base.next(iter::TreeIt, state) = (expand!(iter), state) 
-
-function expand!(iter::TreeIt)
-    node = pop!(iter.opennodes) 
-    children = get_children(node) #implemented by user
-    for child in reverse(children)
-        push!(iter.opennodes, child)
+"""
+Return a random node from the tree with uniform probability
+Uses reservoir sampling
+"""
+rand_node(root) = rand_node(GLOBAL_RNG, x->true, root)
+rand_node(rng::AbstractRNG, root) = rand_node(rng, x->true, root)
+rand_node(pred::Function, root) = rand_node(GLOBAL_RNG, pred, root)
+function rand_node(rng::AbstractRNG, pred::Function, root)
+    current = root
+    n = 1
+    for node in tree_iter(root)
+        if pred(node)
+            if rand(rng) <= 1/n
+                current = node
+            end
+            n += 1
+        end
     end
-    node
+    return current
 end
 
-Base.done(iter::TreeIt, state) = isempty(iter.opennodes)
 
-#workaround: iterator traits on v0.5 for collect(), not needed for v0.4
-if VERSION >= v"0.5.0-dev+3305"
-    Base.iteratorsize(iter::TreeIt) = Base.SizeUnknown() 
-end
-
-"""
-Traverse tree, apply f at each node, combine the results using op.
-"""
-function traverse(f::Function, op::Function, node)
-    v = f(node) 
-    for child in get_children(node)
-        v = op(v, traverse(f, op, child)) 
-    end
-    v
-end
 end #module

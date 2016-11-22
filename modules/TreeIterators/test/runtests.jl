@@ -32,5 +32,15 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils, TreeIterators
+using RLESUtils, TreeIterators, TestTree
 using Base.Test
+
+function test1()
+    tree = simple_tree1()
+    treeit = tree_iter(tree.root)
+    TreeIterators.get_children(node::MyNode) = node.children
+    xs = map(node->node.x, treeit)
+    @test xs == collect(0:4)
+end
+
+test1()

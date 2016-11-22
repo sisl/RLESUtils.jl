@@ -33,48 +33,31 @@
 # *****************************************************************************
 
 """
-Iterator for tree structures, depth-first traversal
+Tree for testing
 """
-module TreeIterators 
+module TestTree
 
-export tree_iter, traverse
+export MyTree, MyNode, simple_tree1
 
-get_children(node) = error("user should override get_children().  Takes
-    a node object and returns an iterable of children") 
-
-type TreeIt
-    opennodes::Vector{Any}
+type MyNode
+    x::Int64
+    children::Vector{MyNode}
 end
 
-tree_iter(root) = TreeIt([root])
-
-Base.start(iter::TreeIt) = 0 
-Base.next(iter::TreeIt, state) = (expand!(iter), state) 
-
-function expand!(iter::TreeIt)
-    node = pop!(iter.opennodes) 
-    children = get_children(node) #implemented by user
-    for child in reverse(children)
-        push!(iter.opennodes, child)
-    end
-    node
+type MyTree
+    root::MyNode
 end
 
-Base.done(iter::TreeIt, state) = isempty(iter.opennodes)
+function simple_tree1()
+    child3 = MyNode(3, MyNode[])
+    child4 = MyNode(4, MyNode[])
 
-#workaround: iterator traits on v0.5 for collect(), not needed for v0.4
-if VERSION >= v"0.5.0-dev+3305"
-    Base.iteratorsize(iter::TreeIt) = Base.SizeUnknown() 
+    child1 = MyNode(1, MyNode[])
+    child2 = MyNode(2, MyNode[child3, child4])
+
+    root = MyNode(0, MyNode[child1, child2])
+    tree = MyTree(root)
+    tree
 end
 
-"""
-Traverse tree, apply f at each node, combine the results using op.
-"""
-function traverse(f::Function, op::Function, node)
-    v = f(node) 
-    for child in get_children(node)
-        v = op(v, traverse(f, op, child)) 
-    end
-    v
-end
 end #module

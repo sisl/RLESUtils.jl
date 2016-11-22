@@ -32,49 +32,33 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-"""
-Iterator for tree structures, depth-first traversal
-"""
-module TreeIterators 
+using RLESUtils, TreeUtils, TestTree
+using Base.Test
 
-export tree_iter, traverse
+TreeUtils.get_children(node::MyNode) = node.children
 
-get_children(node) = error("user should override get_children().  Takes
-    a node object and returns an iterable of children") 
-
-type TreeIt
-    opennodes::Vector{Any}
-end
-
-tree_iter(root) = TreeIt([root])
-
-Base.start(iter::TreeIt) = 0 
-Base.next(iter::TreeIt, state) = (expand!(iter), state) 
-
-function expand!(iter::TreeIt)
-    node = pop!(iter.opennodes) 
-    children = get_children(node) #implemented by user
-    for child in reverse(children)
-        push!(iter.opennodes, child)
+function test1(N::Int64=15)
+    tree = simple_tree1()
+    rng = MersenneTwister(1) 
+    xs = Array(Int64, N) 
+    for i = 1:N
+        node = rand_node(rng, tree.root)
+        xs[i] = node.x
     end
-    node
+    #@show xs
+    @test xs  == [3,0,1,2,0,3,4,3,4,3,4,2,0,1,1] #expected answer
 end
 
-Base.done(iter::TreeIt, state) = isempty(iter.opennodes)
-
-#workaround: iterator traits on v0.5 for collect(), not needed for v0.4
-if VERSION >= v"0.5.0-dev+3305"
-    Base.iteratorsize(iter::TreeIt) = Base.SizeUnknown() 
-end
-
-"""
-Traverse tree, apply f at each node, combine the results using op.
-"""
-function traverse(f::Function, op::Function, node)
-    v = f(node) 
-    for child in get_children(node)
-        v = op(v, traverse(f, op, child)) 
+function test2(N::Int64=15)
+    tree = simple_tree1()
+    rng = MersenneTwister(1) 
+    xs = Array(Int64, N) 
+    for i = 1:N
+        node = rand_node(rng, x->!isempty(x.children), tree.root)
+        xs[i] = node.x
     end
-    v
+    @test xs  == [2,2,2,0,0,2,0,2,2,0,0,2,0,0,0] #expected answer
 end
-end #module
+
+test1()
+test2()
