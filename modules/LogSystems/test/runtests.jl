@@ -42,12 +42,15 @@ function test1()
     register_log!(logsys, "val", ["x", "2x"], [Float64, Float64])
     register_log!(logsys, "unused", ["y"], [Float64])
     register_log!(logsys, "prod", ["x^2"], [Float64], "val", v->[v[1]*v[1]])
+    register_log!(logsys, "userparam", ["n*x"], [Float64], "val", v->[logsys.params["n"]*v[1]])
 
     #user side
     register_log!(logsys, "sum", ["x+2x"], [Float64], "val", v->[v[1]+v[2]]) #user custom log
+    logsys.params["n"] = 5
     logs = TaggedDFLogger()
-    send_to!(logs, logsys, ["iter", "val", "sum", "prod"])
+    send_to!(logs, logsys, ["iter", "val", "sum", "prod", "userparam"])
     send_to!(STDOUT, logsys, ["iter", "sum"]) 
+    send_to!(STDOUT, logsys, "iter"; interval=2)
     send_to!(STDOUT, logsys, "val", v->"sum(v1,v2)=$(round(v[1]+v[2], 2))")
 
     #package side
