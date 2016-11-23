@@ -41,20 +41,21 @@ function test1()
     register_log!(logsys, "iter", ["i"], [Int64])
     register_log!(logsys, "val", ["x", "2x"], [Float64, Float64])
     register_log!(logsys, "unused", ["y"], [Float64])
+    register_log!(logsys, "prod", ["x^2"], [Float64], "val", v->[v[1]*v[1]])
 
     #user side
+    register_log!(logsys, "sum", ["x+2x"], [Float64], "val", v->[v[1]+v[2]]) #user custom log
     logs = TaggedDFLogger()
-    send_to!(logs, logsys, ["iter", "val"])
-    send_to!(STDOUT, logsys, ["iter"]) 
+    send_to!(logs, logsys, ["iter", "val", "sum", "prod"])
+    send_to!(STDOUT, logsys, ["iter", "sum"]) 
     send_to!(STDOUT, logsys, "val", v->"sum(v1,v2)=$(round(v[1]+v[2], 2))")
-    send_custom_to!(logs, logsys, "val", "custom", ["sum"], [Float64], v->[v[1]+v[2]])
 
     #package side
     observer = get_observer(logsys)
     for i = 1:10
         @notify_observer(observer, "iter", [i])
 
-        x = i + 0.1
+        x = i
         @notify_observer(observer, "val", [x, 2x])
     end
      
