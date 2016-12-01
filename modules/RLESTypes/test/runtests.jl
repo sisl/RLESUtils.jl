@@ -32,39 +32,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils, TreeUtils, TestTree
-using Base.Test
+using RLESUtils
+using RLESTypes
 
-TreeUtils.get_children(node::MyNode) = node.children
-
-function test1(N::Int64=15)
-    tree = simple_tree1()
-    rng = MersenneTwister(1) 
-    xs = Array(Int64, N) 
-    for i = 1:N
-        node = rand_node(rng, tree.root)
-        xs[i] = node.x
-    end
-    #@show xs
-    @test xs  == [3,0,1,2,0,3,4,3,4,3,4,2,0,1,1] #expected answer
-end
-
-function test2(N::Int64=15)
-    tree = simple_tree1()
-    rng = MersenneTwister(1) 
-    xs = Array(Int64, N) 
-    for i = 1:N
-        node = rand_node(rng, x->!isempty(x.children), tree.root)
-        xs[i] = node.x
-    end
-    @test xs  == [2,2,2,0,0,2,0,2,2,0,0,2,0,0,0] #expected answer
-end
-
-function test3()
-    tree = simple_tree1()
-    @test count_nodes(tree.root) == 5
-end
-
-test1()
-test2()
-test3()

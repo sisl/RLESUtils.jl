@@ -85,7 +85,7 @@ function clear!(logsys::LogSystem)
 end
 
 """
-Register a log with the system to make it available for users
+Register a log with the system to make it available for users, with custom
 """
 function register_log!{S<:AbstractString}(logsys::LogSystem, log_name::AbstractString,
     var_names::Vector{S}, var_types::Vector{DataType}, obs_name::AbstractString,

@@ -37,7 +37,7 @@ A collection of tools for trees
 """
 module TreeUtils
 
-export rand_node
+export rand_node, count_nodes
 
 using RLESUtils, TreeIterators
 using Base: Random
@@ -64,5 +64,9 @@ function rand_node(rng::AbstractRNG, pred::Function, root)
     return current
 end
 
+count_nodes(node) = count_nodes(x->true, node)
+function count_nodes(f::Function, node)
+    traverse(x->f(x) ? 1 : 0, +, node)
+end
 
 end #module
