@@ -183,9 +183,17 @@ function load_log(::Type{TaggedDFLogger}, file::AbstractString)
   return logger
 end
 
+function push!(logger::TaggedDFLogger,tag::AbstractString, x) 
+    try
+        push!(logger.data[tag], x)
+    catch e
+        println("tag=$tag, x=$(string(x))")
+        rethrow(e)
+    end
+end
+
 get_log(logger::TaggedDFLogger) = logger.data
 get_log(logger::TaggedDFLogger, tag::AbstractString) = logger.data[tag]
-push!(logger::TaggedDFLogger,tag::AbstractString, x) = push!(logger.data[tag], x)
 set!(logger::TaggedDFLogger, tag::AbstractString, D::DataFrame) = logger.data[tag] = D
 append!(logger::TaggedDFLogger, tag::AbstractString, D::DataFrame) = append!(logger.data[tag], D)
 
