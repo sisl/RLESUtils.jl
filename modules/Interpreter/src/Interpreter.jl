@@ -34,9 +34,8 @@
 
 """
 Evaluates an expression without compiling it.
-Uses AST and symbol lookups. Only supports :call expressions at the moment.
-Use FMap to specify functions
-Use VMap to specify values 
+Uses AST and symbol lookups. Only supports :call and :(=) 
+expressions at the moment.
 Example:
 tab = SymbolTable(:f => f, :x => x)
 ex = :(f(x))
@@ -52,13 +51,26 @@ interpret(tab::SymbolTable, x::Any) = x
 interpret(tab::SymbolTable, s::Symbol) = tab[s]
 
 function interpret(tab::SymbolTable, ex::Expr)
-    if ex.head != :call 
-        error("Expression type not supported")
-    end
+    interpret(tab, ex, Val{ex.head})
+end
+function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:call}})
     f = tab[ex.args[1]]
     args = [interpret(tab,ex.args[i]) for i = 2:endof(ex.args)]
     result = f(args...)
     result
+end
+function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:(=)}})
+    tab[ex.args[1]] = interpret(tab, ex.args[2]) #assignments done to symboltable
+end
+function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:block}})
+    result = nothing
+    for x in ex.args
+        result = interpret(tab, x)
+    end
+    result
+end
+function interpret(tab::SymbolTable, ex::Expr, x)
+    error("Expression type not supported")
 end
 
 end #module
