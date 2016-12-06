@@ -34,7 +34,9 @@
 
 module MathUtils
 
-export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, gini_impurity, gini_from_counts
+export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, 
+    gini_impurity, gini_from_counts,
+    round_nearest_even, round_nearest_odd
 export SEM, SEM_ymax, SEM_ymin
 export sum_to_1
 export logxpy
@@ -164,5 +166,8 @@ function logxpy(logX::Vector{Float64})
   end
   logz
 end
+
+round_nearest_odd(x::Float64) = 2.*round(Int64, (x+1)/2)-1
+round_nearest_even(x::Float64) = 2.*round(Int64, x/2)
 
 end #module
