@@ -34,15 +34,19 @@
 
 module IFTTTUtils
 
-export sendifttt, trigger, trigger_from_keyfile
+export sendifttt, trigger, trigger_from_keyfile, set_auth_token
 
 using Compat
 import Compat.ASCIIString
 
 using Requests
+using RLESUtils, FileUtils
 
 const BASEURL = "https://maker.ifttt.com"
 const EVENT = "jl_notify"
+
+const DIR = dirname(@__FILE__)
+const KEYFILE = joinpath(DIR, "auth_token.txt")
 
 function form_trigger_url(event::AbstractString, key::AbstractString)
     url = BASEURL * "/trigger/$(event)/with/key/$key"
@@ -54,7 +58,11 @@ function parsekey(keyfile::AbstractString)
     key
 end
 
-function sendifttt(keyfile::AbstractString, event::AbstractString=EVENT; 
+function set_auth_token(token::AbstractString)
+    textfile(KEYFILE, token)
+end
+
+function sendifttt(event::AbstractString=EVENT, keyfile::AbstractString=KEYFILE; 
     value1::ASCIIString="",
     value2::ASCIIString="",
     value3::ASCIIString="") 
