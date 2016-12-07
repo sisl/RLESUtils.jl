@@ -40,7 +40,6 @@ using Compat
 import Compat.ASCIIString
 
 using Requests
-using RLESUtils, FileUtils
 
 const BASEURL = "https://maker.ifttt.com"
 const EVENT = "jl_notify"
@@ -59,7 +58,9 @@ function parsekey(keyfile::AbstractString)
 end
 
 function set_auth_token(token::AbstractString)
-    textfile(KEYFILE, token)
+    f = open(KEYFILE, "w")
+    print(f, token)
+    close(f)
 end
 
 function sendifttt(event::AbstractString=EVENT, keyfile::AbstractString=KEYFILE; 
