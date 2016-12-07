@@ -32,28 +32,30 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
+"""
+Spawn new julia sessions and execute code in parallel.  will only run up
+to number of procs available and automatically spawn the next task.
+Example usage:
+addprocs(2)
+src_array = JuliaSource[ JuliaSource("using MyModule1; myfunc1()"), 
+JuliaSource("using MyModule2; myfunc2()")]
+pmap(julia_process, src_array)
+Note: To work properly, create a symlink to this module in your julia pkg folder
+"""
 module RunUtils
 
-export parallel_include, julia_process
+export JuliaSource, julia_process
 
-using RLESUtils, FileUtils
+import Compat.ASCIIString
 
-#parallel spawn different processes
-function parallel_include(files::AbstractString...)
-  pmap(files) do f
-    success(`julia $f`)
-  end
+immutable JuliaSource
+    src::ASCIIString
 end
 
-parallel_include{T}(files::Vector{T}) = parallel_include(files...)
-function parallel_include(dir::AbstractString=".")
-  files = readdir_ext(".jl", dir)
-  return parallel_include(files)
-end
-
-function julia_process(script::AbstractString)
-  julia_exe = joinpath(JULIA_HOME, Base.julia_exename())
-  success(`$julia_exe $script`)
+function julia_process(jsrc::JuliaSource)
+    src = jsrc.src
+    julia_exe = Base.julia_cmd()
+    success(`$julia_exe -e $src`)
 end
 
 end #module

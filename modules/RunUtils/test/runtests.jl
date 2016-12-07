@@ -32,8 +32,14 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
 using RunUtils
 
-#addprocs(4)
-#parallel_include("./parallel_include_test")
+jsrc = JuliaSource(
+"""
+myid()
+"""
+)
+
+ary = JuliaSource[jsrc for i = 1:20]
+
+pmap(julia_process, ary)
