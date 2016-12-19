@@ -36,7 +36,7 @@ module BenchmarkTests
 
 export test_matmul, test_map, test_loop, test_all
 
-function test_matmul(N::Int64=100000; verbose::Bool=true)
+function test_matmul(N::Int64=2000; verbose::Bool=true)
     A = rand(N,N)
     B = rand(N,N)
     tic()
@@ -51,7 +51,7 @@ end
 function test_map(N::Int64=10000000; verbose::Bool=true)
     A = rand(N)
     tic()
-    map!(x->x+1, A)
+    map!(x->sin(x)/x+exp(x), A)
     elapsed = toq()
     if verbose
         println("test_map: $elapsed seconds")
@@ -63,11 +63,12 @@ function test_loop(N::Int64=10000000; verbose::Bool=true)
     A = rand(N)
     tic()
     for i=1:length(A)
-        A[i] += 1
+        x = A[i]
+        A[i] = sin(x)/x+exp(x) 
     end
     elapsed = toq()
     if verbose
-        println("test_map: $elapsed seconds")
+        println("test_loop: $elapsed seconds")
     end
     return elapsed 
 end
