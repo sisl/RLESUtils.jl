@@ -32,51 +32,36 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
+"""
+Run the standard julia benchmark problems and save results to file:
+result = runtest()
+save2file(result)
+Requires:
+Pkg.clone("https://github.com/JuliaCI/BaseBenchmarks.jl", "BaseBenchmarks")
+"""
 module BenchmarkTests
 
-export test_matmul, test_map, test_loop, test_all
+export runtest, save2file
 
-function test_matmul(N::Int64=2000; verbose::Bool=true)
-    A = rand(N,N)
-    B = rand(N,N)
-    tic()
-    A * B
-    elapsed = toq()
-    if verbose
-        println("test_matmul: $elapsed seconds")
-    end
-    return elapsed 
+using BaseBenchmarks, BenchmarkTools, DataFrames
+
+function runtest(verbose::Bool=true)
+    BaseBenchmarks.loadall!()
+    result = run(BaseBenchmarks.SUITE, verbose=verbose)
+    result
 end
 
-function test_map(N::Int64=10000000; verbose::Bool=true)
-    A = rand(N)
-    tic()
-    map!(x->sin(x)/x+exp(x), A)
-    elapsed = toq()
-    if verbose
-        println("test_map: $elapsed seconds")
+function save2file(result, fileroot::AbstractString="testresult")
+    D = DataFrame([String, Float64],[:tag, :min_time], 0) 
+    for t in (leaves(minimum(results)))
+        tag = join(t[1])
+        len = min(length(tag), 50) #truncate tag to first 50 chars
+        tag = tag[1:len]
+        min_time = t[2].time
+        push!(D, [tag, min_time])   
     end
-    return elapsed 
-end
-
-function test_loop(N::Int64=10000000; verbose::Bool=true)
-    A = rand(N)
-    tic()
-    for i=1:length(A)
-        x = A[i]
-        A[i] = sin(x)/x+exp(x) 
-    end
-    elapsed = toq()
-    if verbose
-        println("test_loop: $elapsed seconds")
-    end
-    return elapsed 
-end
-
-function test_all()
-    test_matmul()
-    test_map()
-    test_loop()
+    writetable(fileroot*".csv", D)
+    D
 end
 
 end #module
