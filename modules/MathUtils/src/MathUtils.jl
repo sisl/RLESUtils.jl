@@ -36,7 +36,8 @@ module MathUtils
 
 export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, 
     gini_impurity, gini_from_counts,
-    round_nearest_even, round_nearest_odd
+    round_nearest_even, round_nearest_odd,
+    angle_diff_deg, angle_diff_rad
 export SEM, SEM_ymax, SEM_ymin
 export sum_to_1
 export logxpy
@@ -169,5 +170,21 @@ end
 
 round_nearest_odd(x::Float64) = 2.*round(Int64, (x+1)/2)-1
 round_nearest_even(x::Float64) = 2.*round(Int64, x/2)
+
+"""
+returns x-y where angles are in degrees, handles wraparound
+"""
+function angle_diff_deg(x::Float64, y::Float64) 
+    a = x - y
+    mod(a + 180.0, 360.0) - 180.0
+end
+
+"""
+returns x-y where angles are in radians, handles wraparound
+"""
+function angle_diff_rad(x::Float64, y::Float64) 
+    a = x - y
+    mod(a + pi, 2pi) - pi 
+end
 
 end #module

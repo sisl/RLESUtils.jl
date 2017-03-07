@@ -99,7 +99,7 @@ end
 
 function replace_text(file::AbstractString, src::AbstractString, dst::AbstractString, 
     outdir::AbstractString; fopen::Function=open, inplace::Bool=false)
-  text = fopen(readall, file)
+  text = fopen(readstring, file)
   text = replace(text, src, dst)
 
   if inplace
