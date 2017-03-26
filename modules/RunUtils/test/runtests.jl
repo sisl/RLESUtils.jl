@@ -36,10 +36,10 @@ using RLESUtils, RunUtils
 
 jsrc = JuliaSource(
 """
-myid()
+println("myid=", myid())
 """
 )
 
-ary = JuliaSource[jsrc for i = 1:20]
+ary = JuliaSource[jsrc for i = 1:10]
 
 pmap(julia_process, ary)

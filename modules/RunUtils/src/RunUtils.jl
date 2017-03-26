@@ -55,9 +55,15 @@ end
 function julia_process(jsrc::JuliaSource)
     src = jsrc.src
     julia_exe = Base.julia_cmd()
-    result = success(`$julia_exe -e $src`)
-    println("$(myid()): $result")
-    result
+    outfile = tempname()
+    msg = "success"
+    try
+        run(pipeline(`$julia_exe -e $src`, stdout=outfile))
+    catch e
+        msg = e
+    end
+    println("$(myid()): $msg")
+    outfile
 end
 
 end #module

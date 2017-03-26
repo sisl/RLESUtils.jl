@@ -33,6 +33,7 @@
 # *****************************************************************************
 
 """
+Deprecated: Use AbstractTrees.jl instead (depends on a slightly different interface)
 Iterator for tree structures, depth-first traversal
 """
 module TreeIterators 
