@@ -60,24 +60,22 @@ function julia_process(lst::Vector{JuliaSource}, np::Int64)
     nextidx() = (idx=i; i+=1; idx)
     @sync begin
         for p=1:np
-            if p != myid() || np == 1
-                @async begin
-                    while true
-                        idx = nextidx()
-                        if idx > n
-                            break
-                        end
-                        src = lst[idx].src
-                        outfile = tempname()
-                        msg = "success"
-                        try
-                            run(pipeline(`$julia_exe -e $src`, stdout=outfile))
-                        catch e
-                            msg = e
-                        end
-                        println("$(myid()): $msg")
-                        results[idx] = outfile 
+            @async begin
+                while true
+                    idx = nextidx()
+                    if idx > n
+                        break
                     end
+                    src = lst[idx].src
+                    outfile = tempname()
+                    msg = "success"
+                    try
+                        run(pipeline(`$julia_exe -e $src`, stdout=outfile))
+                    catch e
+                        msg = e
+                    end
+                    println("$idx: $msg")
+                    results[idx] = outfile 
                 end
             end
         end
