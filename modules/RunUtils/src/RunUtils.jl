@@ -52,18 +52,37 @@ immutable JuliaSource
     src::ASCIIString
 end
 
-function julia_process(jsrc::JuliaSource)
-    src = jsrc.src
+function julia_process(lst::Vector{JuliaSource}, np::Int64)
     julia_exe = Base.julia_cmd()
-    outfile = tempname()
-    msg = "success"
-    try
-        run(pipeline(`$julia_exe -e $src`, stdout=outfile))
-    catch e
-        msg = e
+    n = length(lst)
+    results = Vector{Any}(n)
+    i = 1
+    nextidx() = (idx=i; i+=1; idx)
+    @sync begin
+        for p=1:np
+            if p != myid() || np == 1
+                @async begin
+                    while true
+                        idx = nextidx()
+                        if idx > n
+                            break
+                        end
+                        src = lst[idx].src
+                        outfile = tempname()
+                        msg = "success"
+                        try
+                            run(pipeline(`$julia_exe -e $src`, stdout=outfile))
+                        catch e
+                            msg = e
+                        end
+                        println("$(myid()): $msg")
+                        results[idx] = outfile 
+                    end
+                end
+            end
+        end
     end
-    println("$(myid()): $msg")
-    outfile
+    results
 end
 
 end #module

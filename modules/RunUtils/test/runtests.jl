@@ -40,6 +40,6 @@ println("myid=", myid())
 """
 )
 
-ary = JuliaSource[jsrc for i = 1:10]
+A = JuliaSource[jsrc for i = 1:10]
 
-pmap(julia_process, ary)
+#julia_process(A, 4)
