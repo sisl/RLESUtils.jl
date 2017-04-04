@@ -60,6 +60,7 @@ import Compat.ASCIIString
 
 using DataFrames
 import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, values, append!
+import Base.transpose
 
 abstract Logger
 
@@ -207,5 +208,18 @@ next(logger::TaggedDFLogger, s) = next(logger.data, s)
 done(logger::TaggedDFLogger, s) = done(logger.data, s)
 length(logger::TaggedDFLogger) = length(logger.data)
 
+function transpose(D::DataFrame, namecol::Symbol; rows::Vector{Symbol}=Symbol[])
+    cnames = convert(Array{Symbol}, D[namecol]) 
+    ctypes = convert(Array{Type}, fill(Any, nrow(D)))
+    Dout = DataFrame(ctypes, cnames, 0) 
+    if isempty(rows)
+        rows = filter(x->x != namecol, names(D))
+    end
+    for r in rows
+        push!(Dout, D[r])
+    end
+    Dout[:colnames] = rows
+    Dout
+end
 
 end #module

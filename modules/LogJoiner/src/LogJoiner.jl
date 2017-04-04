@@ -47,14 +47,21 @@ using RLESUtils, Loggers, FileUtils
 using DataFrames
 
 function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractString, 
-    lognames::Vector{T}, outfileroot::AbstractString="joined", logtype::Type=TaggedDFLogger)
+    lognames::Vector{T}, outfileroot::AbstractString="joined", logtype::Type=TaggedDFLogger;
+    transpose_syms::Vector{Union{Void,Symbol}}=Union{Void,Symbol}[])
 
+    if isempty(transpose_syms)
+        tranpose_syms = fill(nothing, length(lognames))
+    end
     lognames = convert(Vector{ASCIIString}, lognames)
     joined = TaggedDFLogger()
     for subdir in readdir_dir(logdir)
         logs = load_log(logtype, joinpath(subdir, logfile))
-        for logname in lognames
+        for (logname, sym) in zip(lognames, transpose_syms)
             D = logs[logname]
+            if isa(sym, Symbol)
+                D = transpose(D, sym)
+            end
             D[:name] = fill(basename(subdir), nrow(D))
             if !haskey(joined, logname)
                 set!(joined, logname, D)
