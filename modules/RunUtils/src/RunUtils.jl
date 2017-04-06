@@ -68,6 +68,7 @@ function julia_process(lst::Vector{JuliaSource}, np::Int64)
                     end
                     src = lst[idx].src
                     outfile = tempname()
+                    println("$idx: $outfile")
                     msg = "success"
                     try
                         run(pipeline(`$julia_exe -e $src`, stdout=outfile))

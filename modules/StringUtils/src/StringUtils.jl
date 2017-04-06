@@ -51,8 +51,7 @@ function hamming(s1::AbstractString, s2::AbstractString)
   return sum(x[1:minlen] .!= y[1:minlen]) + len_diff
 end
 
-convert(::Type{Int64}, s::AbstractString) = parse(Int64, s)
-
+convert{T<:Number}(::Type{T}, s::AbstractString) = parse(T, s)
 function convert(::Type{Bool}, s::AbstractString)
   s = uppercase(s)
   if in(s, TRUES)
