@@ -51,7 +51,7 @@ function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractStr
     transpose_syms::Vector{Union{Void,Symbol}}=Union{Void,Symbol}[])
 
     if isempty(transpose_syms)
-        tranpose_syms = fill(nothing, length(lognames))
+        transpose_syms = fill(nothing, length(lognames))
     end
     lognames = convert(Vector{ASCIIString}, lognames)
     joined = TaggedDFLogger()
