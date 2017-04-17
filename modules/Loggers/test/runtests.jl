@@ -36,46 +36,6 @@ using RLESUtils, Loggers, Observers
 using DataFrames
 using Base.Test
 
-function test_dflogger()
-  logger = DataFrameLogger([Bool,Int], ["mybool", "myint"])
-  f = push!_f(logger)
-  f([true, 0])
-  f([false, 5])
-  d = get_log(logger)
-  @test d[:mybool] == [true, false]
-  @test d[:myint] == [0, 5]
-
-  #test operability with Observers
-  empty!(logger)
-  obs = Observer()
-  add_observer(obs, push!_f(logger))
-  @notify_observer_default(obs, [false, 150])
-  @notify_observer_default(obs, [true, -5])
-  d = get_log(logger)
-  @test d[:mybool] == [false, true]
-  @test d[:myint] == [150, -5]
-end
-
-function test_arraylogger()
-  logger = ArrayLogger()
-  f = push!_f(logger)
-  f([true, 0])
-  f([false, 5])
-  d = get_log(logger)
-  @test d[1] == [true, 0]
-  @test d[2] == [false, 5]
-
-  #test operability with Observers
-  empty!(logger)
-  obs = Observer()
-  add_observer(obs, push!_f(logger))
-  @notify_observer_default(obs, [false, 150])
-  @notify_observer_default(obs, [true, -5])
-  d = get_log(logger)
-  @test d[1] == [false, 150]
-  @test d[2] == [true, -5]
-end
-
 function test_tdflogger()
   logger = TaggedDFLogger()
   add_folder!(logger, "folder1", [Bool, Int64], ["mybool", "myint"])
@@ -94,6 +54,4 @@ function test_tdflogger()
   @test log2[:mybool] == [false, true]
 end
 
-test_dflogger()
-test_arraylogger()
 test_tdflogger()
