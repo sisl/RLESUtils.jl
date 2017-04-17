@@ -35,10 +35,10 @@
 using RLESUtils, TreeIterators, TestTree
 using Base.Test
 
+TreeIterators.get_children(node::MyNode) = node.children
 function test1()
     tree = simple_tree1()
     treeit = tree_iter(tree.root)
-    TreeIterators.get_children(node::MyNode) = node.children
     xs = map(node->node.x, treeit)
     @test xs == collect(0:4)
 end
