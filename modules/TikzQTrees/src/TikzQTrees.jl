@@ -66,26 +66,28 @@ end
 Takes a json file as input and writes tex/pdf TikzQTree output.
 """
 function plottree(filename::AbstractString;
+                  level_dist_cm::Int64=4,
                   outfileroot::AbstractString="qtree",
                   output::AbstractString="TEXPDF")
   f = open(filename, "r")
   d = JSON.parse(f)
   d = convert(JDict, d) #convert is used because JSON.parse returns Dict{UTF8String}...
   close(f)
-  plottree(d, outfileroot=outfileroot, output=output)
+  plottree(d, level_dist_cm=level_dist_cm, outfileroot=outfileroot, output=output)
 end
 
 """
 Takes a json-style dict as input and writes tex/pdf TikzQTree output.
 """
 function plottree(d::JDict;
+                  level_dist_cm::Int64=4,
                   outfileroot::AbstractString="qtree",
                   output::AbstractString="TEXPDF")
   preamble = "\\usepackage{tikz-qtree}
 \\usetikzlibrary{shadows,trees}
 \\tikzset{
 edge from parent fork down,
-level distance=4cm,
+level distance=$(level_dist_cm)cm,
 every node/.style=
     {top color=white,
     bottom color=blue!25,
