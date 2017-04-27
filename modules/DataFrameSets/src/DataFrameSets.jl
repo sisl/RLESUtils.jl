@@ -37,14 +37,16 @@ module DataFrameSets
 export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs, writemeta, metacolnames, recordcolnames, filenames
 export getmeta, getrecords, labels, metadf, getmeta_array, getdata, reset_ids!
 export addrecord!
+export convert_to_array_cols!
 
 import Base: start, next, done, length, size, vcat, getindex, convert
 import Base: maximum, minimum
 
-using RLESUtils, FileUtils
+using RLESUtils, FileUtils, DataFrameUtils
 using Reexport
 @reexport using DataFrames
 import DataArrays.anyna
+import DataFrameUtils.convert_to_array_cols!
 
 const METAFILE = "_META.csv.gz"
 # metafile is a dataframe that contains:
@@ -79,7 +81,6 @@ end
 
 function writemeta(outdir::AbstractString, meta::DataFrame)
     mkpath(outdir)
-
     fname = joinpath(outdir, METAFILE)
     writetable(fname, meta)
 end
@@ -195,6 +196,12 @@ function minimum(Ds::DFSet, col::Symbol)
     minimum(map(D->minimum(D[col]), getrecords(Ds)))
 end
 
+function convert_to_array_cols!(Ds::DFSet)
+    for i = 1:length(Ds)
+        convert_to_array_cols!(Ds.records[i])
+    end
+end
+
 ### DFSetLabeled
 type DFSetLabeled{T}
     data::DFSet
@@ -276,5 +283,9 @@ end
 
 maximum(Dl::DFSetLabeled, col::Symbol) = maximum(Dl.data, col)
 minimum(Dl::DFSetLabeled, col::Symbol) = minimum(Dl.data, col)
+
+function convert_to_array_cols!(Dl::DFSetLabeled)
+    convert_to_array_cols!(Dl.data)
+end
 
 end #module

@@ -34,7 +34,7 @@
 
 module DataFrameUtils
 
-export convert_columns! 
+export convert_columns!, convert_to_array_cols! 
 
 using DataFrames
 using StringUtils
@@ -51,6 +51,12 @@ function convert_columns!(D::DataFrame, target_types::Vector{Type},
         D[c] = map(x->convert(T, x), D[c])
     end
     D
+end
+
+function convert_to_array_cols!(D::DataFrame)
+    for i = 1:length(D.columns)
+        D.columns[i] = convert(Array, D.columns[i])
+    end
 end
 
 end #module

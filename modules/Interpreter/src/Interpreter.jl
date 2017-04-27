@@ -55,8 +55,7 @@ function interpret(tab::SymbolTable, ex::Expr)
 end
 function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:call}})
     f = tab[ex.args[1]]
-    args = [interpret(tab,ex.args[i]) for i = 2:endof(ex.args)]
-    result = f(args...)
+    result = call_func(Val{length(ex.args)}, f, tab, ex.args)
     result
 end
 function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:(=)}})
@@ -71,6 +70,45 @@ function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:block}})
 end
 function interpret(tab::SymbolTable, ex::Expr, x)
     error("Expression type not supported")
+end
+
+#unroll for performance and avoid excessive allocations
+function call_func(::Type{Val{2}}, f::Function, tab::SymbolTable, args)
+    f(interpret(tab, args[2]))
+end
+function call_func(::Type{Val{3}}, f::Function, tab::SymbolTable, args)
+    f(interpret(tab, args[2]),
+        interpret(tab, args[3]))
+end
+function call_func(::Type{Val{4}}, f::Function, tab::SymbolTable, args)
+    f(interpret(tab, args[2]),
+        interpret(tab, args[3]),
+        interpret(tab, args[4]))
+end
+function call_func(::Type{Val{5}}, f::Function, tab::SymbolTable, args)
+    f(interpret(tab, args[2]),
+        interpret(tab, args[3]),
+        interpret(tab, args[4]),
+        interpret(tab, args[5]))
+end
+function call_func(::Type{Val{6}}, f::Function, tab::SymbolTable, args)
+    f(interpret(tab, args[2]),
+        interpret(tab, args[3]),
+        interpret(tab, args[4]),
+        interpret(tab, args[5]),
+        interpret(tab, args[6]))
+end
+function call_func(::Type{Val{7}}, f::Function, tab::SymbolTable, args)
+    f(interpret(tab, args[2]),
+        interpret(tab, args[3]),
+        interpret(tab, args[4]),
+        interpret(tab, args[5]),
+        interpret(tab, args[6]),
+        interpret(tab, args[7]))
+end
+function call_func(::Any, f::Function, tab::SymbolTable, args)
+    args = [interpret(tab, args[i]) for i = 2:endof(args)]
+    f(args...)
 end
 
 end #module
