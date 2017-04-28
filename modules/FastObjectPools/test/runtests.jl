@@ -33,13 +33,13 @@
 # *****************************************************************************
 
 using RLESUtils
-using FastVecPools
+using FastObjectPools
 
 
 const VEC_SIZE = 5
 const POOL_SIZE = 10 
 
-pool = FastVecPool{Int64}(VEC_SIZE, POOL_SIZE)
+pool = FastObjectPool{Vector{Int64}}(()->Vector{Int64}(VEC_SIZE), POOL_SIZE)
 
 @show available(pool)
 

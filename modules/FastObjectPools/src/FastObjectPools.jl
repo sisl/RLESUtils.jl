@@ -33,45 +33,47 @@
 # *****************************************************************************
 
 """
-Maintains a pre-allocated pool of vectors.  You can check out vectors
-and return them to the pool.  Vectors are initialized to vec_size.
+Maintains a pre-allocated pool of objects.  You can check out objects
+and return them to the pool.  
 Primary use is to avoid repeated temporary vector allocations
-Vectors are not initialized at checkout.
+Objects are not initialized or cleaned in any way.  It is the
+responsibility of the user to sanitize the old objects.
+Note: there is no way to return a single object, must check_in_all
 """
-module FastVecPools
+module FastObjectPools
 
-export FastVecPool, checkout, check_in_all, available
+export FastObjectPool, checkout, check_in_all, available
 
-type FastVecPool{T}
-    items::Vector{Vector{T}}
+type FastObjectPool{T}
+    items::Vector{T}
     index::Int64 #index-1 of next available vector
 
-    function FastVecPool(vec_size::Int64, pool_size::Int64)
-        items = [Vector{T}(vec_size) for i=1:pool_size]
+    function FastObjectPool(constructor::Base.Callable, pool_size::Int64)
+        items = T[constructor() for i=1:pool_size]
         new(items, 0)
     end
 end
 
 """
-Check out a vector from pool
+Check out an object from pool
 """
-function checkout(pool::FastVecPool)
+function checkout(pool::FastObjectPool)
     pool.index += 1
     pool.items[pool.index] #if max size is exceeded, will throw out of bounds exception
 end
 
 
 """
-Check in all vectors to pool
+Check in all objects to pool
 """
-function check_in_all(pool::FastVecPool)
+function check_in_all(pool::FastObjectPool)
     pool.index = 0
 end
 
 """
-Number of available vectors left in pool
+Number of available objects left in pool
 """
-function available(pool::FastVecPool)
+function available(pool::FastObjectPool)
     length(pool.items) - pool.index
 end
 
