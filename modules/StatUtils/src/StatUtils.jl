@@ -44,8 +44,11 @@ uniform_probs(N::Int64) = fill(1.0/N, N)
 """
 Weighted sample over a collection V with weight vector weights
 """
-function weighted_rand(V, weights::Vector{Float64})
-    i = select_random(weights)
+function weighted_rand{T}(V::AbstractVector{T}, weights::Vector{Float64})
+    weighted_rand(Base.GLOBAL_RNG, V, weights)
+end
+function weighted_rand{T}(rng::AbstractRNG, V::AbstractVector{T}, weights::Vector{Float64})
+    i = select_random(rng, weights)
     V[i]
 end
 
@@ -53,8 +56,11 @@ end
 Random sample according to weights.  Returns index
 """
 function select_random(weights::Vector{Float64})
+    select_random(Base.GLOBAL_RNG, weights)
+end
+function select_random(rng::AbstractRNG, weights::Vector{Float64})
    s = cumsum(weights)
-   r = s[end] * rand()
+   r = s[end] * rand(rng)
    index = findfirst(x->(x >= r), s)
    index
 end
