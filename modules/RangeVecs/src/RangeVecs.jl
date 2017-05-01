@@ -33,59 +33,62 @@
 # *****************************************************************************
 
 """
-Pre-allocated random samples organized into channels.
-Primary use case is to enable threaded random number generation to have the same
-deterministic outcome as sequential version.  Each loop iteration draws numbers from 
-its own channel, which allows random and out of order computations.
-See runtests.jl for example usage.
+Convert to and from vectors of ints to a compact representation that uses
+a vector of unit ranges.
 """
-module RandChannels
+module RangeVecs
 
-export RandChannel, WrappedRandChannel, resample!, set_channel!
+export RangeVec, iterator
 
-import Base.rand
+using Iterators
+import Base: collect, convert, string, show
 
-type RandChannel{T}
-    channels::Array{T,2} 
-    indices::Vector{Int64}
+typealias RangeVecType Union{Int64,UnitRange{Int64}}
+
+type RangeVec
+    ranges::Vector{RangeVecType}
 end
-function RandChannel{T}(rng::AbstractRNG, num_channels::Int64, 
-    channel_length::Int64, ::Type{T}=Float64) 
-    channels = rand(T, channel_length, num_channels) #store as a 2D matrix, a channel is a column to preserve sequential rand order
-    indices = ones(Int64, num_channels)
-    RandChannel(channels, indices)
-end
-function RandChannel{T}(num_channels::Int64, channel_length::Int64, ::Type{T}=Float64) 
-    RandChannel(Base.GLOBAL_RNG, num_channels, channel_length, T)
-end
+RangeVec(v::Vector{Int64}) = convert(RangeVec, v) 
+RangeVec() = RangeVec(Vector{RangeVecType}())
 
-function rand(rc::RandChannel, channel_number::Int64)
-    index = rc.indices[channel_number]
-    r = rc.channels[index, channel_number]
-    rc.indices[channel_number] = index + 1 
-    r
-end
+collect(rangevec::RangeVec) = convert(Vector, rangevec)
 
-function resample!{T}(rc::RandChannel{T})
-    #follow natural col-row order for better performance
-    @inbounds for j = 1:size(rc.channels, 2)
-        @inbounds for i = 1:size(rc.channels, 1)
-            rc.channels[i, j] = rand(T)
+function convert(::Type{RangeVec}, v::Vector{Int64})
+    if isempty(v)
+        return RangeVec()
+    end
+    v1 = unique(v)
+    sort!(v1)
+    ranges = RangeVecType[]
+    rstart = rstop = v1[1]
+    for i = 2:length(v1)
+        if v1[i] == rstop + 1
+            rstop += 1
+        else
+            push!(ranges, make_range(rstart, rstop)) 
+            rstart = rstop = v1[i]
         end
     end
-    fill!(rc.indices, 1)
-    rc
+    push!(ranges, make_range(rstart, rstop))
+    RangeVec(ranges)
 end
 
-type WrappedRandChannel{T} <: AbstractRNG
-    rc::RandChannel{T}
-    channel_number::Int64
+function make_range(rstart::Int64, rstop::Int64)
+    if rstart == rstop 
+        return rstart
+    end
+    rstart:rstop
 end
 
-function set_channel!(wrc::WrappedRandChannel, channel_number::Int64) 
-    wrc.channel_number = channel_number
+function iterator(rangevec::RangeVec)
+    chain(rangevec.ranges...)
 end
 
-rand(wrc::WrappedRandChannel) = rand(wrc.rc, wrc.channel_number)
+function convert(::Type{Vector}, rangevec::RangeVec)
+    collect(iterator(rangevec)) 
+end
+
+string(rangevec::RangeVec) = join(rangevec.ranges, ",")
+show(io::IO, rangevec::RangeVec) = print(io, string(rangevec))
 
 end #module

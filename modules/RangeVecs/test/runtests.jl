@@ -32,60 +32,16 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-"""
-Pre-allocated random samples organized into channels.
-Primary use case is to enable threaded random number generation to have the same
-deterministic outcome as sequential version.  Each loop iteration draws numbers from 
-its own channel, which allows random and out of order computations.
-See runtests.jl for example usage.
-"""
-module RandChannels
+using RLESUtils
+using RangeVecs
+using Base.Test
 
-export RandChannel, WrappedRandChannel, resample!, set_channel!
+const V1 = [1, 2, 3, 4, 10, 11, 15, 19, 20]
+const R1 = [1:4, 10:11, 15, 19:20]
 
-import Base.rand
+rangevec = RangeVec(V1)
+@test rangevec.ranges == R1
 
-type RandChannel{T}
-    channels::Array{T,2} 
-    indices::Vector{Int64}
-end
-function RandChannel{T}(rng::AbstractRNG, num_channels::Int64, 
-    channel_length::Int64, ::Type{T}=Float64) 
-    channels = rand(T, channel_length, num_channels) #store as a 2D matrix, a channel is a column to preserve sequential rand order
-    indices = ones(Int64, num_channels)
-    RandChannel(channels, indices)
-end
-function RandChannel{T}(num_channels::Int64, channel_length::Int64, ::Type{T}=Float64) 
-    RandChannel(Base.GLOBAL_RNG, num_channels, channel_length, T)
-end
+v1 = convert(Vector, rangevec)
+@test v1 == V1
 
-function rand(rc::RandChannel, channel_number::Int64)
-    index = rc.indices[channel_number]
-    r = rc.channels[index, channel_number]
-    rc.indices[channel_number] = index + 1 
-    r
-end
-
-function resample!{T}(rc::RandChannel{T})
-    #follow natural col-row order for better performance
-    @inbounds for j = 1:size(rc.channels, 2)
-        @inbounds for i = 1:size(rc.channels, 1)
-            rc.channels[i, j] = rand(T)
-        end
-    end
-    fill!(rc.indices, 1)
-    rc
-end
-
-type WrappedRandChannel{T} <: AbstractRNG
-    rc::RandChannel{T}
-    channel_number::Int64
-end
-
-function set_channel!(wrc::WrappedRandChannel, channel_number::Int64) 
-    wrc.channel_number = channel_number
-end
-
-rand(wrc::WrappedRandChannel) = rand(wrc.rc, wrc.channel_number)
-
-end #module
