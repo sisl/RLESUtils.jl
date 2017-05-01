@@ -46,13 +46,13 @@ export RandChannel, WrappedRandChannel, resample!, set_channel!
 import Base.rand
 
 type RandChannel{T}
-    channels::Vector{Vector{T}} 
+    channels::Array{T,2} 
     indices::Vector{Int64}
 
 end
 function RandChannel{T}(rng::AbstractRNG, num_channels::Int64, 
     channel_length::Int64, ::Type{T}=Float64) 
-    channels = [rand(T, channel_length) for i=1:num_channels]
+    channels = rand(T, channel_length, num_channels) #store as a 2D matrix, a channel is a column to preserve sequential rand order
     indices = ones(Int64, num_channels)
     RandChannel(channels, indices)
 end
@@ -62,16 +62,16 @@ end
 
 function rand(rc::RandChannel, channel_number::Int64)
     index = rc.indices[channel_number]
-    r = rc.channels[channel_number][index]
+    r = rc.channels[index, channel_number]
     rc.indices[channel_number] = index + 1 
     r
 end
 
 function resample!{T}(rc::RandChannel{T})
-    @inbounds for i = 1:length(rc.channels)
-        ch = rc.channels[i]
-        @inbounds for j = 1:length(ch)
-            ch[j] = rand(T)
+    #follow natural col-row order for better performance
+    @inbounds for j = 1:size(rc.channels, 2)
+        @inbounds for i = 1:size(rc.channels, 1)
+            rc.channels[i, j] = rand(T)
         end
     end
     fill!(rc.indices, 1)
