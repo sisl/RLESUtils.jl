@@ -38,6 +38,7 @@ export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize,
     gini_impurity, gini_from_counts,
     round_nearest_even, round_nearest_odd,
     angle_diff_deg, angle_diff_rad
+export entropy_from_vec, entropy_from_counts
 export SEM, SEM_ymax, SEM_ymin
 export sum_to_1
 export logxpy
@@ -185,6 +186,38 @@ returns x-y where angles are in radians, handles wraparound
 function angle_diff_rad(x::Float64, y::Float64) 
     a = x - y
     mod(a + pi, 2pi) - pi 
+end
+
+function entropy_from_vec{T}(v::AbstractVector{T})
+  cnts = isempty(v) ? Int64[] : counts(v)
+  ent = entropy_from_counts(cnts)
+  ent
+end
+
+function entropy_from_vec{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
+  cnts1 = isempty(v1) ? Int64[] : counts(v1)
+  cnts2 = isempty(v2) ? Int64[] : counts(v2)
+  ent = entropy_from_counts(cnts1, cnts2)
+  ent
+end
+
+function entropy_from_counts(cnts::AbstractVector{Int64})
+  N = sum(cnts)
+  ent = (N == 0) ? 0.0 : entropy(cnts / N)
+  ent
+end
+
+function entropy_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector{Int64})
+  n1 = sum(cnts1)
+  n2 = sum(cnts2)
+  N = n1 + n2
+  if N == 0
+    return ent = 0.0
+  end
+  ent1 = entropy_from_counts(cnts1)
+  ent2 = entropy_from_counts(cnts2)
+  ent = (n1 * ent1 + n2 * ent2) / N
+  ent
 end
 
 end #module
