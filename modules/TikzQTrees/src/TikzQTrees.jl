@@ -66,7 +66,7 @@ end
 Takes a json file as input and writes tex/pdf TikzQTree output.
 """
 function plottree(filename::AbstractString;
-                  level_dist_cm::Int64=4,
+                  level_dist_cm::Float64=4,
                   outfileroot::AbstractString="qtree",
                   output::AbstractString="TEXPDF")
   f = open(filename, "r")
