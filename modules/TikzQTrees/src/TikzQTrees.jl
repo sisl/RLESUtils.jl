@@ -41,7 +41,7 @@ module TikzQTrees
 export plottree, JDict
 
 import Compat.ASCIIString
-using RLESUtils, LatexUtils
+using RLESUtils, LatexUtils, PGFPlotUtils
 using TikzPictures
 using JSON
 
@@ -80,7 +80,7 @@ Takes a json-style dict as input and writes tex/pdf TikzQTree output.
 function plottree(d::JDict;
                   level_dist_cm::Float64=4.0,
                   outfileroot::AbstractString="qtree",
-                  output::AbstractString="TEXPDF")
+                  format::Symbol=:TEXPDF)
   preamble = "\\usepackage{tikz-qtree}
 \\usetikzlibrary{shadows,trees}
 \\tikzset{
@@ -107,17 +107,8 @@ edge from parent/.style=
   println(io, ";")
 
   tp = TikzPicture(takebuf_string(io), preamble=preamble)
-  if output == "TEXPDF"
-    save(PDF(outfileroot), tp)
-    save(TEX(outfileroot), tp)
-  elseif output == "PDF"
-    save(PDF(outfileroot), tp)
-  elseif output == "TEX"
-    save(TEX(outfileroot), tp)
-  else
-    error("Unrecognized output type")
-  end
-  return tp
+  plot_tikz(outfileroot, tp, format=format)
+  tp
 end
 
 end #module

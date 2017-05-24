@@ -42,6 +42,7 @@ export entropy_from_vec, entropy_from_counts
 export SEM, SEM_ymax, SEM_ymin
 export sum_to_1
 export logxpy
+export round_up_to_multiple
 
 using StatsBase
 
@@ -218,6 +219,13 @@ function entropy_from_counts(cnts1::AbstractVector{Int64}, cnts2::AbstractVector
   ent2 = entropy_from_counts(cnts2)
   ent = (n1 * ent1 + n2 * ent2) / N
   ent
+end
+
+"""
+Rounds x up to the nearest integer multiple of b
+"""
+function round_up_to_multiple(x::Int64, b::Int64)
+    round(Int64, x / b) * b
 end
 
 end #module
