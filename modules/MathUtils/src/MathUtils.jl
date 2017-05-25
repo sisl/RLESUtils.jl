@@ -46,7 +46,7 @@ export round_up_to_multiple
 
 using StatsBase
 
-import Base.extrema
+import Base: extrema, clamp!
 
 function extrema{T}(A::Array{T,2}, dim)
   mapslices(A, dim) do x
@@ -226,6 +226,12 @@ Rounds x up to the nearest integer multiple of b
 """
 function round_up_to_multiple(x::Int64, b::Int64)
     round(Int64, x / b) * b
+end
+
+function clamp!{T}(x::AbstractVector{Float64}, limits::AbstractVector{{Tuple{T,T}})
+    for i = 1:length(theta)
+        x[i] = clamp(x[i], limits[i][1], limits[i][2])
+    end
 end
 
 end #module
