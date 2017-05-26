@@ -107,7 +107,7 @@ edge from parent/.style=
   println(io, ";")
 
   tp = TikzPicture(takebuf_string(io), preamble=preamble)
-  plot_tikz(outfileroot, tp, format=format)
+  plot_tikz(outfileroot, tp, format)
   tp
 end
 

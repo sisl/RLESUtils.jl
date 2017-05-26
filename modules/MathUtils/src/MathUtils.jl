@@ -228,7 +228,7 @@ function round_up_to_multiple(x::Int64, b::Int64)
     round(Int64, x / b) * b
 end
 
-function clamp!{T}(x::AbstractVector{Float64}, limits::AbstractVector{{Tuple{T,T}})
+function clamp!{T}(x::AbstractVector{Float64}, limits::AbstractVector{Tuple{T,T}})
     for i = 1:length(theta)
         x[i] = clamp(x[i], limits[i][1], limits[i][2])
     end
