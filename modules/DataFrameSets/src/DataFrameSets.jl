@@ -40,11 +40,12 @@ export addrecord!
 export convert_to_array_cols!
 
 import Base: start, next, done, length, size, vcat, getindex, convert
-import Base: maximum, minimum
+import Base: maximum, minimum, minmax
 
 using RLESUtils, FileUtils, DataFrameUtils
 using Reexport
 @reexport using DataFrames
+import DataFrames: names
 import DataArrays.anyna
 import DataFrameUtils.convert_to_array_cols!
 
@@ -102,6 +103,7 @@ end
 metacolnames(Ds::DFSet) = colnames(Ds.meta)
 recordcolnames(Ds::DFSet) = colnames(Ds.records[1])
 colnames(D::DataFrame) = map(string, names(D))
+names(Ds::DFSet) = names(Ds.records[1])
 
 getindex(Ds::DFSet, inds) = DFSet(Ds.meta[inds,:], Ds.records[inds])
 
@@ -194,6 +196,15 @@ end
 
 function minimum(Ds::DFSet, col::Symbol)
     minimum(map(D->minimum(D[col]), getrecords(Ds)))
+end
+
+"""
+Find the global (minimum,maximum) for each column in a Ds.
+Returns a vector of min/max tuples.
+"""
+function minmax(Ds::DFSet)
+    ns = names(Ds)
+    [(minimum(Ds, ns[i]), maximum(Ds, ns[i])) for i=1:length(ns)]
 end
 
 function convert_to_array_cols!(Ds::DFSet)

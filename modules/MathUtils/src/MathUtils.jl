@@ -43,6 +43,7 @@ export SEM, SEM_ymax, SEM_ymin
 export sum_to_1
 export logxpy
 export round_up_to_multiple
+export discretize_minmax
 
 using StatsBase
 
@@ -232,6 +233,13 @@ function clamp!{T}(x::AbstractVector{Float64}, limits::AbstractVector{Tuple{T,T}
     for i = 1:length(theta)
         x[i] = clamp(x[i], limits[i][1], limits[i][2])
     end
+end
+
+function discretize_minmax(minmax_vec::Vector{Tuple{Float64,Float64}}, num_points::Int64)
+    map(x->discretize_minmax(x, num_points), minmax_vec)
+end
+function discretize_minmax(minmax_pair::Tuple{Float64,Float64}, num_points::Int64)
+    linspace(minmax_pair[1], minmax_pair[2], num_points)
 end
 
 end #module
