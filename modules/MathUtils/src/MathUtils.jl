@@ -37,17 +37,16 @@ module MathUtils
 export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize, 
     gini_impurity, gini_from_counts,
     round_nearest_even, round_nearest_odd,
-    angle_diff_deg, angle_diff_rad
-export entropy_from_vec, entropy_from_counts
-export SEM, SEM_ymax, SEM_ymin
-export sum_to_1
-export logxpy
-export round_up_to_multiple
-export discretize_minmax
+    angle_diff_deg, angle_diff_rad,
+    entropy_from_vec, entropy_from_counts,
+    SEM, SEM_ymax, SEM_ymin,
+    sum_to_1, logxpy, round_up_to_multiple, discretize_minmax, proportion,
+    item_counts
 
 using StatsBase
 
 import Base: extrema, clamp!
+import StatsBase.counts
 
 function extrema{T}(A::Array{T,2}, dim)
   mapslices(A, dim) do x
@@ -240,6 +239,18 @@ function discretize_minmax(minmax_vec::Vector{Tuple{Float64,Float64}}, num_point
 end
 function discretize_minmax(minmax_pair::Tuple{Float64,Float64}, num_points::Int64)
     linspace(minmax_pair[1], minmax_pair[2], num_points)
+end
+
+proportion{T}(list::AbstractVector{T}, item::T) = count(x->x==item, list) / length(list)
+
+StatsBase.counts{T}(x::AbstractVector{T}) = collect(values(item_counts(x)))
+
+function item_counts{T}(x::AbstractVector{T})
+    D = Dict{T,Int64}()
+    for item in x
+        D[item] = get(D, item, 0) + 1
+    end
+    D
 end
 
 end #module
