@@ -36,6 +36,8 @@
 Goes into each sub-directory of 'logdir', loads the 'logfile', extracts each log named 'logname',
 stacks them all together into a single DataFrame, loads them into a TaggedDFLogger,
 and saves the log to 'outfileroot'.txt.
+Subdir name is loaded into column :name.
+All logs in TaggedDFLogger are then merged into a single DataFrame, joined on subdir name.
 Main entry: logjoin()
 """
 module LogJoiner
@@ -71,6 +73,10 @@ function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractStr
         end
     end
     save_log("$outfileroot.txt", joined)
+
+    D1 = join([joined[k] for k in lognames]...; on=:name)
+    writetable("$(outfileroot)_dataframe.csv.gz", D1) 
+
     joined
 end
 
