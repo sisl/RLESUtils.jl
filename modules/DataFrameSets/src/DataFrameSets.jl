@@ -37,7 +37,7 @@ module DataFrameSets
 export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs, writemeta, metacolnames, recordcolnames, filenames
 export getmeta, getrecords, labels, metadf, getmeta_array, getdata, reset_ids!
 export addrecord!
-export convert_to_array_cols!
+export convert_to_array_cols!, split_data
 
 import Base: start, next, done, length, size, vcat, getindex, convert
 import Base: maximum, minimum, minmax
@@ -297,6 +297,27 @@ minimum(Dl::DFSetLabeled, col::Symbol) = minimum(Dl.data, col)
 
 function convert_to_array_cols!(Dl::DFSetLabeled)
     convert_to_array_cols!(Dl.data)
+end
+
+"""
+Maintains label proportions
+"""
+function split_data(D::DFSetLabeled, frac::Float64)
+    @assert 0.0 < frac < 1.0
+    labelset = unique(D.labels)
+    ids = map(x->find(D.labels .== x), labelset)
+    ids1 = map(ids) do id_vec
+        split_point = floor(Int, length(id_vec)*frac)
+        id_vec[1:split_point]
+    end
+    ids2 = map(ids) do id_vec
+        split_point = floor(Int, length(id_vec)*frac)
+        id_vec[(split_point+1):end]
+    end
+    ids1 = vcat(ids1...)
+    ids2 = vcat(ids2...)
+
+    D[ids1], D[ids2]
 end
 
 end #module
