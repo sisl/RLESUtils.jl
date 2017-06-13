@@ -34,7 +34,7 @@
 
 module DataFrameUtils
 
-export convert_columns!, convert_to_array_cols! 
+export convert_columns!, convert_to_array_cols!, find_in_col
 
 using DataFrames
 using StringUtils
@@ -57,6 +57,13 @@ function convert_to_array_cols!(D::DataFrame)
     for i = 1:length(D.columns)
         D.columns[i] = convert(Array, D.columns[i])
     end
+end
+
+function find_in_col{T}(D::DataFrame, src_col::Union{Symbol,Int64}, 
+    target_col::Union{Symbol,Int64}, src_val::T)
+    ind = find(D[src_col] .== src_val)
+    x = D[ind[1], target_col] #if there are multiple matches, take the first
+    x
 end
 
 end #module

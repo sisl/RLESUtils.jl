@@ -59,77 +59,80 @@ export TaggedDFLogger, add_folder!, add_varlist!
 import Compat.ASCIIString
 
 using DataFrames
-import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, values, append!
+import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, 
+    values, append!
 import Base.transpose
 
 abstract Logger
 
 type TaggedDFLogger <: Logger
-  data::Dict{ASCIIString,DataFrame}
+    data::Dict{ASCIIString,DataFrame}
 end
 TaggedDFLogger() = TaggedDFLogger(Dict{ASCIIString,DataFrame}())
 
 push!_f(logger::TaggedDFLogger, tag::AbstractString) = x -> push!(logger, tag, x)
 function append_push!_f(logger::TaggedDFLogger, tag::AbstractString, appendx)
-  return x -> begin
-    x = convert(Vector{Any}, x)
-    push!(x, appendx...)
-    return push!(logger, tag, x)
-  end
+    return x -> begin
+        x = convert(Vector{Any}, x)
+        push!(x, appendx...)
+        return push!(logger, tag, x)
+    end
 end
 
 function add_varlist!(logger::TaggedDFLogger, tag::AbstractString)
     add_folder!(logger, tag, [ASCIIString, Any], ["variable", "value"])
 end
 
-function add_folder!{T<:Type,S<:AbstractString}(logger::TaggedDFLogger, tag::AbstractString, eltypes::Vector{T}, elnames::Vector{S})
-  return add_folder!(logger, tag, eltypes, map(Symbol, elnames))
+function add_folder!{T<:Type,S<:AbstractString}(logger::TaggedDFLogger, tag::AbstractString, 
+    eltypes::Vector{T}, elnames::Vector{S})
+    add_folder!(logger, tag, eltypes, map(Symbol, elnames))
 end
 
-function add_folder!{T<:Type}(logger::TaggedDFLogger, tag::AbstractString, eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])
-  if !haskey(logger, tag)
-    logger.data[tag] = DataFrame(eltypes, elnames, 0)
-  else
-    warn("TaggedDFLogger: Folder already exists: $tag")
-  end
-  return logger
+function add_folder!{T<:Type}(logger::TaggedDFLogger, tag::AbstractString, 
+    eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])
+    if !haskey(logger, tag)
+        logger.data[tag] = DataFrame(eltypes, elnames, 0)
+    else
+        warn("TaggedDFLogger: Folder already exists: $tag")
+    end
+    logger
 end
 
 function save_log(file::AbstractString, logger::TaggedDFLogger)
-  fileroot = splitext(file)[1]
-  f = open(file, "w")
-  println(f, "__type__=TaggedDFLogger")
-  for (tag, log) in get_log(logger)
-    fname = "$(fileroot)_$tag.csv.gz"
-    println(f, "$tag=$(basename(fname))")
-    writetable(fname, log)
-  end
-  close(f)
+    fileroot = splitext(file)[1]
+    f = open(file, "w")
+    println(f, "__type__=TaggedDFLogger")
+    for (tag, log) in get_log(logger)
+        fname = "$(fileroot)_$tag.csv.gz"
+        println(f, "$tag=$(basename(fname))")
+        writetable(fname, log)
+    end
+    close(f)
 end
 
 function load_log(::Type{TaggedDFLogger}, file::AbstractString)
-  dir = dirname(file)
-  logger = TaggedDFLogger()
-  f = open(file)
-  for line in eachline(f)
-    line = chomp(line)
-    k, v = split(line, "=")
-    if k == "__type__" #crude typechecking
-      if v != "TaggedDFLogger"
-        error("TaggedDFLogger: Not a TaggedDFLogger file!")
-      end
-    else
-      tag, dffile = k, v
-      try
-        D = readtable(joinpath(dir, dffile))
-        logger.data[tag] = D
-      catch
-        warn("logs[\"$tag\"] could not be restored")
-      end
+    dir = dirname(file)
+    logger = TaggedDFLogger()
+    f = open(file)
+    for line in eachline(f)
+        line = chomp(line)
+        k, v = split(line, "=")
+        if k == "__type__" #crude typechecking
+            if v != "TaggedDFLogger"
+                error("TaggedDFLogger: Not a TaggedDFLogger file!")
+            end
+        else
+            tag, dffile = k, v
+            try
+                D = readtable(joinpath(dir, dffile))
+                logger.data[tag] = D
+            catch
+                warn("logs[\"$tag\"] could not be restored")
+            end
+        end
     end
-  end
-  close(f)
-  return logger
+    close(f)
+    logger
 end
 
 function push!(logger::TaggedDFLogger,tag::AbstractString, x) 

@@ -42,3 +42,8 @@ D = DataFrame(A)
 @test eltypes(D) == [String, String]
 convert_columns!(D, Type[Int64, Float64], [:x1, :x2])
 @test eltypes(D) == Type[Int64, Float64]
+
+D = DataFrame(Dict(:x=>[:a,:b,:c], :y=>[1,2,3]))
+@test find_in_col(D, :x, :y, :a) == 1 
+@test find_in_col(D, :x, :y, :b) == 2
+@test find_in_col(D, :x, :y, :c) == 3 

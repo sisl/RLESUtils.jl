@@ -38,7 +38,7 @@ Example use case: save parameter objects with Loggers
 """
 module Obj2DataFrames
 
-export ObjDataFrame, eltypes, set!
+export ObjDataFrame, eltypes, set!, to_df, to_args
 
 using DataFrames
 
@@ -49,10 +49,14 @@ type ObjDataFrame
     d::DataFrame
 end
 
+to_df{T}(x::T) = convert(DataFrame, convert(ObjDataFrame, x))
+to_args{T}(d::DataFrame) = values(ObjDataFrame(d))
+
+convert(::Type{DataFrame}, obj::ObjDataFrame) = obj.d
+
 eltypes(obj::ObjDataFrame) = eltypes(obj.d)
 
 function convert{T}(::Type{ObjDataFrame}, x::T)
-    @assert isa(T, DataType)
     fields = fieldnames(x)
     types = map(f->fieldtype(T, f), fields)
     vals = map(f->getfield(x, f), fields)
@@ -62,9 +66,8 @@ function convert{T}(::Type{ObjDataFrame}, x::T)
 end
 
 function set!{T}(x::T, obj::ObjDataFrame)
-    @assert isa(T, DataType)
-    for n in names(obj.d)
-        setfield!(x, n, obj.d[1, n]) 
+    for nm in names(obj.d)
+        setfield!(x, nm, obj.d[1, nm]) 
     end
 end
 
