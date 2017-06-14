@@ -41,6 +41,7 @@ module Obj2DataFrames
 export ObjDataFrame, eltypes, set!, to_df, to_args
 
 using DataFrames
+using RLESUtils, StringUtils
 
 import DataFrames: eltypes
 import Base: convert, values 
@@ -50,7 +51,7 @@ type ObjDataFrame
 end
 
 to_df{T}(x::T) = convert(DataFrame, convert(ObjDataFrame, x))
-to_args{T}(d::DataFrame) = values(ObjDataFrame(d))
+to_args(d::DataFrame) = values(ObjDataFrame(d))
 
 convert(::Type{DataFrame}, obj::ObjDataFrame) = obj.d
 
@@ -67,12 +68,29 @@ end
 
 function set!{T}(x::T, obj::ObjDataFrame)
     for nm in names(obj.d)
-        setfield!(x, nm, obj.d[1, nm]) 
+        val = handle_string(obj.d[1,nm])
+        val = convert(fieldtype(T, nm), val)
+        setfield!(x, nm, val) 
     end
+    x
 end
 
 function values(obj::ObjDataFrame)
-   [obj.d[1,i] for i = 1:ncol(obj.d)]
+    @assert nrow(obj.d) == 1
+    [obj.d[1,i] for i = 1:ncol(obj.d)]
+end
+
+#special handling for strings --- function is not type stable...
+handle_string(x) = x
+function handle_string(s::AbstractString)
+    if s == "nothing"
+        return nothing
+    elseif in(s, StringUtils.TRUES)
+        return true
+    elseif in(s, StringUtils.FALSES)
+        return false
+    end
+    s
 end
 
 end #module

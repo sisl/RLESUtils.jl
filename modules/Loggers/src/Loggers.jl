@@ -37,7 +37,7 @@ Example usage:\n
 #create logger\n
 logs = TaggedDFLogger()\n
 add_folder!(logs, "mylog1", [Int64, Float64], [:x1, :x2])\n
-add_folder!(logs, "mylog2", [Bool, ASCIIString], [:y1, :y2])\n
+add_folder!(logs, "mylog2", [Bool, String], [:y1, :y2])\n
 #create observer\n
 observer = Observer()\n
 add_observer(observer, "signal1", push!_f(logs, "mylog1"))\n
@@ -52,23 +52,37 @@ logs["mylog2"]
 """
 module Loggers
 
-export Logger, get_log, empty!, push!,setindex!, getindex, haskey, start, next, done, length,
-      push!_f, append_push!_f, save_log, load_log, keys, values, set!
+export LogFile, Logger, get_log, empty!, push!,setindex!, getindex, haskey, 
+    start, next, done, length, push!_f, append_push!_f, save_log, load_log, 
+    keys, values, set!, name
 export TaggedDFLogger, add_folder!, add_varlist!
 
-import Compat.ASCIIString
-
 using DataFrames
+using ZipFile
+
 import Base: empty!, push!, setindex!, getindex, haskey, start, next, done, length, keys, 
     values, append!
 import Base.transpose
 
 abstract Logger
 
-type TaggedDFLogger <: Logger
-    data::Dict{ASCIIString,DataFrame}
+immutable LogFile
+   name::String
+
+   function LogFile(file::AbstractString)
+        if !endswith(file, ".zip")
+            file *= ".zip"
+        end
+        new(file)
+    end
 end
-TaggedDFLogger() = TaggedDFLogger(Dict{ASCIIString,DataFrame}())
+
+name(logfile::LogFile) = logfile.name
+
+type TaggedDFLogger <: Logger
+    data::Dict{String,DataFrame}
+end
+TaggedDFLogger() = TaggedDFLogger(Dict{String,DataFrame}())
 
 push!_f(logger::TaggedDFLogger, tag::AbstractString) = x -> push!(logger, tag, x)
 function append_push!_f(logger::TaggedDFLogger, tag::AbstractString, appendx)
@@ -80,7 +94,7 @@ function append_push!_f(logger::TaggedDFLogger, tag::AbstractString, appendx)
 end
 
 function add_varlist!(logger::TaggedDFLogger, tag::AbstractString)
-    add_folder!(logger, tag, [ASCIIString, Any], ["variable", "value"])
+    add_folder!(logger, tag, [String, Any], ["variable", "value"])
 end
 
 function add_folder!{T<:Type,S<:AbstractString}(logger::TaggedDFLogger, tag::AbstractString, 
@@ -98,40 +112,25 @@ function add_folder!{T<:Type}(logger::TaggedDFLogger, tag::AbstractString,
     logger
 end
 
-function save_log(file::AbstractString, logger::TaggedDFLogger)
-    fileroot = splitext(file)[1]
-    f = open(file, "w")
-    println(f, "__type__=TaggedDFLogger")
+function save_log(logfile::LogFile, logger::TaggedDFLogger)
+    file = logfile.name
+    w = ZipFile.Writer(file)
     for (tag, log) in get_log(logger)
-        fname = "$(fileroot)_$tag.csv.gz"
-        println(f, "$tag=$(basename(fname))")
-        writetable(fname, log)
+        f = ZipFile.addfile(w, "$tag.csv")
+        printtable(f, log)
     end
-    close(f)
+    close(w)
 end
 
-function load_log(::Type{TaggedDFLogger}, file::AbstractString)
-    dir = dirname(file)
+function load_log(logfile::LogFile)
+    file = logfile.name
     logger = TaggedDFLogger()
-    f = open(file)
-    for line in eachline(f)
-        line = chomp(line)
-        k, v = split(line, "=")
-        if k == "__type__" #crude typechecking
-            if v != "TaggedDFLogger"
-                error("TaggedDFLogger: Not a TaggedDFLogger file!")
-            end
-        else
-            tag, dffile = k, v
-            try
-                D = readtable(joinpath(dir, dffile))
-                logger.data[tag] = D
-            catch
-                warn("logs[\"$tag\"] could not be restored")
-            end
-        end
+    r = ZipFile.Reader(file)
+    for f in r.files
+        tag = splitext(basename(f.name))[1]
+        logger.data[tag] = readtable(f) 
     end
-    close(f)
+    close(r)
     logger
 end
 

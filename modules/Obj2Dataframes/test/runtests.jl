@@ -53,3 +53,5 @@ set!(y, xobj)
 
 z = MyType(values(xobj)...)
 @test z == x
+
+

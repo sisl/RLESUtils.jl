@@ -37,49 +37,47 @@ module FileUtils
 export readdir_ext, readdir_dir, textfile, filenamefriendly, replace_in_files, 
     replace_text, isidentical 
 
-import Compat.ASCIIString
-
 using GZip
 
 #readdir and filter for ext
 function readdir_ext(ext::AbstractString, dir::AbstractString=".")
-  files = readdir(dir)
-  files = convert(Vector{ASCIIString}, files)
-  filter!(f -> endswith(f, ext), files)
-  map!(f -> joinpath(dir, f), files)
-  return files
+    files = readdir(dir)
+    files = convert(Vector{String}, files)
+    filter!(f -> endswith(f, ext), files)
+    map!(f -> joinpath(dir, f), files)
+    files
 end
 
 #readdir and filter for directories only
 function readdir_dir(dir::AbstractString=".")
-  fs = readdir(dir)
-  fs = convert(Vector{ASCIIString}, fs)
-  map!(f -> joinpath(dir, f), fs)
-  filter!(isdir, fs)
-  return fs
+    fs = readdir(dir)
+    fs = convert(Vector{String}, fs)
+    map!(f -> joinpath(dir, f), fs)
+    filter!(isdir, fs)
+    fs
 end
 
 #fast way to make a textfile that outputs each arg and kwarg to a line
 function textfile(file::AbstractString, args...; kwargs...)
-  open(file, "w") do f
-    for x in args
-      println(f, x)
+    open(file, "w") do f
+        for x in args
+            println(f, x)
+        end
+        for (k, v) in kwargs
+            println(f, k, "=", v)
+        end
     end
-    for (k, v) in kwargs
-      println(f, k, "=", v)
-    end
-  end
 end
 
 #make string filesystem friendly
 function filenamefriendly(s::AbstractString)
-  s = replace(s, "[", "")
-  s = replace(s, "]", "")
-  s = replace(s, "(", "")
-  s = replace(s, ")", "")
-  s = replace(s, ":", "")
-  s = replace(s, ",", "")
-  s
+    s = replace(s, "[", "")
+    s = replace(s, "]", "")
+    s = replace(s, "(", "")
+    s = replace(s, ")", "")
+    s = replace(s, ":", "")
+    s = replace(s, ",", "")
+    s
 end
 
 function replace_in_files{T<:AbstractString}(files::Vector{T}, src::AbstractString, 
@@ -99,17 +97,17 @@ end
 
 function replace_text(file::AbstractString, src::AbstractString, dst::AbstractString, 
     outdir::AbstractString; fopen::Function=open, inplace::Bool=false)
-  text = fopen(readstring, file)
-  text = replace(text, src, dst)
+    text = fopen(readstring, file)
+    text = replace(text, src, dst)
 
-  if inplace
-      outpath = file 
-  else
-      outpath = joinpath(outdir, basename(file))
-  end
-  fout = fopen(outpath, "w")
-  write(fout, text)
-  close(fout)
+    if inplace
+        outpath = file 
+    else
+        outpath = joinpath(outdir, basename(file))
+    end
+    fout = fopen(outpath, "w")
+    write(fout, text)
+    close(fout)
 end
 
 """
