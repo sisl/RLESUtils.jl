@@ -34,7 +34,7 @@
 
 module DataFrameUtils
 
-export convert_columns!, convert_to_array_cols!, find_in_col
+export convert_columns!, convert_to_array_cols!, find_in_col, join_all
 
 using DataFrames
 using StringUtils
@@ -64,6 +64,15 @@ function find_in_col{T}(D::DataFrame, src_col::Union{Symbol,Int64},
     ind = find(D[src_col] .== src_val)
     x = D[ind[1], target_col] #if there are multiple matches, take the first
     x
+end
+
+join_all(Ds::AbstractDataFrame...; kwargs...) = join_all([d for d in Ds]; kwargs...)
+function join_all{T<:AbstractDataFrame}(Ds::AbstractVector{T}; kwargs...)
+    d = Ds[1]
+    for i = 2:length(Ds)
+        d = join(d, Ds[i]; kwargs...)
+    end
+    d
 end
 
 end #module

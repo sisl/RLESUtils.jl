@@ -47,3 +47,17 @@ D = DataFrame(Dict(:x=>[:a,:b,:c], :y=>[1,2,3]))
 @test find_in_col(D, :x, :y, :a) == 1 
 @test find_in_col(D, :x, :y, :b) == 2
 @test find_in_col(D, :x, :y, :c) == 3 
+
+D1 = DataFrame(rand(3,3))
+D1[:id] = 1:3
+D2 = DataFrame(rand(3,3))
+D2[:id] = 1:3 
+D3 = DataFrame(rand(3,3))
+D3[:id] = 1:3 
+
+D = join_all(D1, D2, D3; on=:id)
+@test size(D) == (3, 10)
+@test D[:id] == [1,2,3]
+@test D[:x1] == D1[:x1]
+
+
