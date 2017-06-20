@@ -37,69 +37,75 @@ module StringUtils
 import Compat.ASCIIString
 
 export hamming, balanced_paren, capitalize_first, dump2string, @printeval
-import Base: convert
+import Base: convert, parse
 
 const TRUES = ASCIIString["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
 const FALSES = ASCIIString["FALSE", "F", "-1", "0", "0.0", "NEG", "NEGATIVE"]
 
 
 function hamming(s1::AbstractString, s2::AbstractString)
-  x = collect(s1)
-  y = collect(s2)
-  minlen = min(length(x), length(y))
-  len_diff = abs(length(x) - length(y))
-  return sum(x[1:minlen] .!= y[1:minlen]) + len_diff
+    x = collect(s1)
+    y = collect(s2)
+    minlen = min(length(x), length(y))
+    len_diff = abs(length(x) - length(y))
+    return sum(x[1:minlen] .!= y[1:minlen]) + len_diff
 end
 
 convert{T<:Number}(::Type{T}, s::AbstractString) = parse(T, s)
 function convert(::Type{Bool}, s::AbstractString)
-  s = uppercase(s)
-  if in(s, TRUES)
-    return true
-  elseif in(s, FALSES)
-    return false
-  else
-    throw(InexactError())
-  end
+    s = uppercase(s)
+    if in(s, TRUES)
+        return true
+    elseif in(s, FALSES)
+        return false
+    else
+        throw(InexactError())
+    end
 end
 
 #returns the index of the corresponding closing parenthesis
 #start_index = index of open parenthesis
 function balanced_paren(s::AbstractString, start_index::Int64,
                         open_char::Char='(', close_char::Char=')')
-  if s[start_index] != open_char
-    warn("balanced_paren: start_index not pointing to open_char")
+    if s[start_index] != open_char
+        warn("balanced_paren: start_index not pointing to open_char")
+        return 0
+    end
+    num_open = 0
+    for i = start_index:length(s)
+        if s[i] == open_char
+            num_open += 1
+        elseif s[i] == close_char
+            num_open -= 1
+        end
+        if num_open <= 0
+            return i
+        end
+    end
     return 0
-  end
-  num_open = 0
-  for i = start_index:length(s)
-    if s[i] == open_char
-      num_open += 1
-    elseif s[i] == close_char
-      num_open -= 1
-    end
-    if num_open <= 0
-      return i
-    end
-  end
-  return 0
 end
 
 capitalize_first(s::AbstractString) = string(uppercase(s[1]), s[2:end])
 
 function dump2string(x)
-  io = IOBuffer()
-  dump(io, x)
-  return takebuf_string(io)
+    io = IOBuffer()
+    dump(io, x)
+    return takebuf_string(io)
 end
 
 macro printeval(line)
-  p = :(println($(sprint(Base.show_unquoted, line))))
-  ex = quote
-    $p
-    $(esc(line))
-  end
-  return ex
+    p = :(println($(sprint(Base.show_unquoted, line))))
+    ex = quote
+        $p
+        $(esc(line))
+    end
+    return ex
+end
+
+function parse{T}(::Type{Vector{T}}, s::String)
+    s = replace(s, ['[',']'], "")
+    v = map(x->parse(T,x), split(s, ','))
+    v
 end
 
 end #module

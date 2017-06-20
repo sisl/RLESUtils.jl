@@ -56,6 +56,7 @@ export LogFile, Logger, get_log, empty!, push!,setindex!, getindex, haskey,
     start, next, done, length, push!_f, append_push!_f, save_log, load_log, 
     keys, values, set!, name
 export TaggedDFLogger, add_folder!, add_varlist!
+export save_log_old, load_log_old #deprecated, for legacy compat only
 
 using DataFrames
 using ZipFile
@@ -131,6 +132,45 @@ function load_log(logfile::LogFile)
         logger.data[tag] = readtable(f) 
     end
     close(r)
+    logger
+end
+
+function save_log_old(file::AbstractString, logger::TaggedDFLogger)
+    warn("save_log_old is deprecated")
+    fileroot = splitext(file)[1]
+    f = open(file, "w")
+    println(f, "__type__=TaggedDFLogger")
+    for (tag, log) in get_log(logger)
+        fname = "$(fileroot)_$tag.csv.gz"
+        println(f, "$tag=$(basename(fname))")
+        writetable(fname, log)
+    end
+    close(f)
+end
+
+function load_log_old(file::AbstractString)
+    warn("load_log_old is deprecated")
+    dir = dirname(file)
+    logger = TaggedDFLogger()
+    f = open(file)
+    for line in eachline(f)
+        line = chomp(line)
+        k, v = split(line, "=")
+        if k == "__type__" #crude typechecking
+            if v != "TaggedDFLogger"
+                error("TaggedDFLogger: Not a TaggedDFLogger file!")
+            end
+        else
+            tag, dffile = k, v
+            try
+                D = readtable(joinpath(dir, dffile))
+                logger.data[tag] = D
+            catch
+                warn("logs[\"$tag\"] could not be restored")
+            end
+        end
+    end
+    close(f)
     logger
 end
 
