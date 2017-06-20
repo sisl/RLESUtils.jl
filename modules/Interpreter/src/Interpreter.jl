@@ -53,6 +53,12 @@ interpret(tab::SymbolTable, s::Symbol) = tab[s]
 function interpret(tab::SymbolTable, ex::Expr)
     interpret(tab, ex, Val{ex.head})
 end
+function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:||}})
+    interpret(tab, ex.args[1]) || interpret(tab, ex.args[2])
+end
+function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:&&}})
+    interpret(tab, ex.args[1]) && interpret(tab, ex.args[2])
+end
 function interpret(tab::SymbolTable, ex::Expr, ::Type{Val{:call}})
     f = tab[ex.args[1]]
     result = call_func(Val{length(ex.args)}, f, tab, ex.args)

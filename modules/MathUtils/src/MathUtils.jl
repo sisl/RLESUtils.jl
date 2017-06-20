@@ -46,7 +46,6 @@ export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize,
 using StatsBase
 
 import Base: extrema, clamp!
-import StatsBase.counts
 
 function extrema{T}(A::Array{T,2}, dim)
   mapslices(A, dim) do x
@@ -99,14 +98,14 @@ function SEM{T}(ys::AbstractVector{T})
 end
 
 function gini_impurity{T}(v::AbstractVector{T})
-  cnts = isempty(v) ? Int64[] : counts(v)
+  cnts = isempty(v) ? Int64[] : generalized_counts(v)
   gini = gini_from_counts(cnts)
   gini
 end
 
 function gini_impurity{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
-  cnts1 = isempty(v1) ? Int64[] : counts(v1)
-  cnts2 = isempty(v2) ? Int64[] : counts(v2)
+  cnts1 = isempty(v1) ? Int64[] : generalized_counts(v1)
+  cnts2 = isempty(v2) ? Int64[] : generalized_counts(v2)
   gini = gini_from_counts(cnts1, cnts2)
   gini
 end
@@ -190,14 +189,14 @@ function angle_diff_rad(x::Float64, y::Float64)
 end
 
 function entropy_from_vec{T}(v::AbstractVector{T})
-  cnts = isempty(v) ? Int64[] : counts(v)
+  cnts = isempty(v) ? Int64[] : generalized_counts(v)
   ent = entropy_from_counts(cnts)
   ent
 end
 
 function entropy_from_vec{T}(v1::AbstractVector{T}, v2::AbstractVector{T})
-  cnts1 = isempty(v1) ? Int64[] : counts(v1)
-  cnts2 = isempty(v2) ? Int64[] : counts(v2)
+  cnts1 = isempty(v1) ? Int64[] : generalized_counts(v1)
+  cnts2 = isempty(v2) ? Int64[] : generalized_counts(v2)
   ent = entropy_from_counts(cnts1, cnts2)
   ent
 end
@@ -243,7 +242,7 @@ end
 
 proportion{T}(list::AbstractVector{T}, item::T) = count(x->x==item, list) / length(list)
 
-StatsBase.counts{T}(x::AbstractVector{T}) = collect(values(item_counts(x)))
+generalized_counts{T}(x::AbstractVector{T}) = collect(values(item_counts(x)))
 
 function item_counts{T}(x::AbstractVector{T})
     D = Dict{T,Int64}()
