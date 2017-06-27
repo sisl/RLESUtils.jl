@@ -34,13 +34,11 @@
 
 module StringUtils
 
-import Compat.ASCIIString
-
 export hamming, balanced_paren, capitalize_first, dump2string, @printeval
 import Base: convert, parse
 
-const TRUES = ASCIIString["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
-const FALSES = ASCIIString["FALSE", "F", "-1", "0", "0.0", "NEG", "NEGATIVE"]
+const TRUES = String["TRUE", "T", "+", "1", "1.0", "POS", "POSITIVE"]
+const FALSES = String["FALSE", "F", "-1", "0", "0.0", "NEG", "NEGATIVE"]
 
 
 function hamming(s1::AbstractString, s2::AbstractString)
@@ -51,6 +49,7 @@ function hamming(s1::AbstractString, s2::AbstractString)
     return sum(x[1:minlen] .!= y[1:minlen]) + len_diff
 end
 
+convert{S<:AbstractString,N<:Number}(::Type{S}, x::N) = string(x)
 convert{T<:Number}(::Type{T}, s::AbstractString) = parse(T, s)
 function convert(::Type{Bool}, s::AbstractString)
     s = uppercase(s)

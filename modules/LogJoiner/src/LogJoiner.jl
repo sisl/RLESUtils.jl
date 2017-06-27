@@ -44,13 +44,15 @@ module LogJoiner
 
 export logjoin
 
-using RLESUtils, Loggers, FileUtils
 using DataFrames
+using RLESUtils, Loggers, FileUtils, DataFrameUtils, StringUtils
 
 function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractString, 
     lognames::Vector{T}, join_on::Vector{Symbol}=Symbol[:name], 
     outfileroot::AbstractString="joined";
-    transpose_syms::Vector{Union{Void,Symbol}}=Union{Void,Symbol}[])
+    transpose_syms::Vector{Union{Void,Symbol}}=Union{Void,Symbol}[],
+    cast_types::Dict{String,Vector{Type}}=Dict{String,Vector{Type}}(),
+    verbose::Bool=false)
 
     if isempty(transpose_syms)
         transpose_syms = fill(nothing, length(lognames))
@@ -58,17 +60,22 @@ function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractStr
     lognames = convert(Vector{String}, lognames)
     joined = TaggedDFLogger()
     for subdir in readdir_dir(logdir)
+        verbose && println("subdir=$subdir")
         logs = load_log(LogFile(joinpath(subdir, logfile)))
         for (logname, sym) in zip(lognames, transpose_syms)
+            verbose && println("  logname=$logname")
             D = logs[logname]
-            if isa(sym, Symbol)
+            if isa(sym, Symbol) #transpose if specified
                 D = transpose(D, sym)
             end
             D[:name] = fill(basename(subdir), nrow(D))
+            if haskey(cast_types, logname) #convert types if specified
+                Ts = cast_types[logname]
+                convert_col_types!(D, Ts)
+            end
             if !haskey(joined, logname)
                 set!(joined, logname, D)
             else
-                @show logname
                 append!(joined, logname, D)
             end
         end

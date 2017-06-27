@@ -40,7 +40,7 @@ A = fill("1", (2,2))
 D = DataFrame(A)
 
 @test eltypes(D) == [String, String]
-convert_columns!(D, Type[Int64, Float64], [:x1, :x2])
+convert_col_types!(D, Type[Int64, Float64], [:x1, :x2])
 @test eltypes(D) == Type[Int64, Float64]
 
 D = DataFrame(Dict(:x=>[:a,:b,:c], :y=>[1,2,3]))

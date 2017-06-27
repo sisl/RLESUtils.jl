@@ -34,7 +34,7 @@
 
 module DataFrameUtils
 
-export convert_columns!, convert_to_array_cols!, find_in_col, join_all
+export convert_col_types!, convert_to_array_cols!, find_in_col, join_all
 
 using DataFrames
 using StringUtils
@@ -42,7 +42,7 @@ using StringUtils
 """
 Convert the columns of a dataframe D to specified types 
 """
-function convert_columns!(D::DataFrame, target_types::Vector{Type}, 
+function convert_col_types!(D::DataFrame, target_types::Vector{Type}, 
     cols::Vector{Symbol}=Symbol[])
     if isempty(cols)
         cols = names(D)
