@@ -44,21 +44,21 @@ module LogJoiner
 
 export logjoin
 
-import Compat.ASCIIString
 using RLESUtils, Loggers, FileUtils
 using DataFrames
 
 function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractString, 
-    lognames::Vector{T}, outfileroot::AbstractString="joined", logtype::Type=TaggedDFLogger;
+    lognames::Vector{T}, join_on::Vector{Symbol}=Symbol[:name], 
+    outfileroot::AbstractString="joined";
     transpose_syms::Vector{Union{Void,Symbol}}=Union{Void,Symbol}[])
 
     if isempty(transpose_syms)
         transpose_syms = fill(nothing, length(lognames))
     end
-    lognames = convert(Vector{ASCIIString}, lognames)
+    lognames = convert(Vector{String}, lognames)
     joined = TaggedDFLogger()
     for subdir in readdir_dir(logdir)
-        logs = load_log(logtype, joinpath(subdir, logfile))
+        logs = load_log(LogFile(joinpath(subdir, logfile)))
         for (logname, sym) in zip(lognames, transpose_syms)
             D = logs[logname]
             if isa(sym, Symbol)
@@ -68,13 +68,14 @@ function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractStr
             if !haskey(joined, logname)
                 set!(joined, logname, D)
             else
+                @show logname
                 append!(joined, logname, D)
             end
         end
     end
-    save_log("$outfileroot.txt", joined)
+    save_log(LogFile("$outfileroot.txt"), joined)
 
-    D1 = join([joined[k] for k in lognames]...; on=:name)
+    D1 = join([joined[k] for k in lognames]...; on=join_on)
     writetable("$(outfileroot)_dataframe.csv.gz", D1) 
 
     joined

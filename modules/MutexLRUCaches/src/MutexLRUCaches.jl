@@ -38,14 +38,15 @@ export MutexLRUCache
 
 using LRUCache
 using Base.Threads
-import Base: get, setindex!, get!
 
-type MutexLRUCache{KeyType,ValueType}
+import Base: get, setindex!, get!, empty!, length, isempty
+
+type MutexLRUCache{K,V}
     mutex::Mutex
-    lru::LRU{KeyType,ValueType}
+    lru::LRU{K,V}
 
     function MutexLRUCache(maxsize::Int64=100)
-        new(Mutex(), LRU{KeyType,ValueType}(maxsize))
+        new(Mutex(), LRU{K,V}(maxsize))
     end
 end
 
@@ -53,7 +54,7 @@ end
 Atomic get.  Locks the mutex, fetches the value specified by key, then unlocks.
 Returns value if it exists, otherwise returns default.
 """
-function get{KeyType,ValueType}(cache::MutexLRUCache{KeyType,ValueType}, key::KeyType,
+function get{K,V}(cache::MutexLRUCache{K,V}, key::K,
     default::Any=nothing)
     lock(cache.mutex)
     value = get(cache.lru, key, default)
@@ -64,8 +65,8 @@ end
 """
 Same as get but do-block syntax
 """
-function get!{KeyType,ValueType}(default::Base.Callable, cache::MutexLRUCache{KeyType,ValueType}, 
-    key::KeyType; empty_value::Any=nothing)
+function get!{K,V}(default::Base.Callable, cache::MutexLRUCache{K,V}, 
+    key::K; empty_value::Any=nothing)
     value = get(cache, key, empty_value)
     if value == empty_value 
         value = default() #not locked here
@@ -78,11 +79,20 @@ end
 Atomic set.  Locks the mutex, sets the value to the location of the key,
 then unlocks.
 """
-function setindex!{KeyType,ValueType}(cache::MutexLRUCache{KeyType,ValueType}, 
-    value::ValueType, key::KeyType)
+function setindex!{K,V}(cache::MutexLRUCache{K,V}, 
+    value::V, key::K)
     lock(cache.mutex)
     setindex!(cache.lru, value, key) 
     unlock(cache.mutex)
 end
+
+function empty!{K,V}(cache::MutexLRUCache{K, V})
+    lock(cache.mutex)
+    empty!(cache.lru)
+    unlock(cache.mutex)
+end
+
+length{K,V}(cache::MutexLRUCache{K,V}) = length(cache.lru)
+isempty{K,V}(cache::MutexLRUCache{K,V}) = isempty(cache.lru)
 
 end #module

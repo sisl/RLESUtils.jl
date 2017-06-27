@@ -35,20 +35,21 @@
 using RLESUtils, MutexLRUCaches
 using Base.Test
 
-#function test1()
-    cache = MutexLRUCache{String,Int64}()
+cache = MutexLRUCache{String,Int64}()
     
-    a = get(cache, "a", nothing)
-    @test a == nothing
+a = get(cache, "a", nothing)
+@test a == nothing
 
-    setindex!(cache, 1, "a")
-    a = get(cache, "a", nothing)
-    @test a == 1
+setindex!(cache, 1, "a")
+a = get(cache, "a", nothing)
+@test a == 1
 
-    b = get!(cache, "b") do 
-        2
-    end
-    @test b == 2
-#end
+b = get!(cache, "b") do 
+    2
+end
+@test b == 2
 
-#test1()
+empty!(cache)
+@test length(cache) == 0 
+@test isempty(cache)
+
