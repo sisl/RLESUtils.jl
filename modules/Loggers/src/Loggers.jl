@@ -106,7 +106,8 @@ end
 function add_folder!{T<:Type}(logger::TaggedDFLogger, tag::AbstractString, 
     eltypes::Vector{T}, elnames::Vector{Symbol}=Symbol[])
     if !haskey(logger, tag)
-        logger.data[tag] = DataFrame(eltypes, elnames, 0)
+        logger.data[tag] = isempty(elnames) ? DataFrame(eltypes, 0) :
+            DataFrame(eltypes, elnames, 0)
     else
         warn("TaggedDFLogger: Folder already exists: $tag")
     end

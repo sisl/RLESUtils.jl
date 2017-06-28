@@ -170,14 +170,20 @@ function send_to!(logger::TaggedDFLogger, logsys::LogSystem, log_name::AbstractS
             i == 0 && push!(logger, log_name, f(x))
         end)
 end
-#""
-#Send log to user-defined function
-#"""
-#function send_to!(logsys::LogSystem, log_name::AbstractString, user_func::Function) 
-    #obs_name, f = processing_func(logsys, log_name)
-    #add_observer(logsys.observer, obs_name, x->user_func(f(x)))
-#end
-#"""
+
+"""
+Send log to user-defined function
+"""
+function send_to!{S<:AbstractString}(user_f::Function, logsys::LogSystem, log_names::Vector{S}) 
+    for log_name in log_names
+        send_to!(user_f, logsys, log_name)
+    end
+end
+function send_to!(user_f::Function, logsys::LogSystem, log_name::AbstractString) 
+    obs_name, f = processing_func(logsys, log_name)
+    add_observer(logsys.observer, obs_name, x->user_f(f(x)))
+end
+"""
 #Send log to Logger (add a folder) but allow user to define how to push
 #"""
 #function send_to!(TaggedDFLogger, logsys::LogSystem, log_name:AbstractString, 
