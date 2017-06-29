@@ -43,23 +43,22 @@ module TreeToJSON
 
 export to_jdict, write_json, VisCalls, JDict
 
-import Compat.ASCIIString
 using JSON
 
-typealias JDict Dict{AbstractString,Any}
+typealias JDict Dict{String,Any}
 
 type VisCalls
-  get_name::Function #name = get_name(node)
-  get_children::Function #get_children(node) give iterable of (edgelabel, child)
-  get_depth::Nullable{Function}
+    get_name::Function #name = get_name(node)
+    get_children::Function #get_children(node) give iterable of (edgelabel, child)
+    get_depth::Nullable{Function}
 end
 
 function VisCalls(get_name::Function, get_children::Function)
-  return VisCalls(get_name, get_children, Nullable{Function}())
+    VisCalls(get_name, get_children, Nullable{Function}())
 end
 
 function VisCalls(get_name::Function, get_children::Function, get_depth::Function)
-  return VisCalls(get_name, get_children, Nullable{Function}(get_depth))
+    VisCalls(get_name, get_children, Nullable{Function}(get_depth))
 end
 
 """
@@ -67,11 +66,11 @@ Like to_jdict except writes output to json file.
 """
 function write_json(treeroot, vc::VisCalls, filename::AbstractString="treeview.json";
                     kvs...)
-  d = to_jdict(treeroot, vc, kvs...)
-  f = open(filename, "w")
-  JSON.print(f, d)
-  close(f)
-  return filename::AbstractString
+    d = to_jdict(treeroot, vc, kvs...)
+    f = open(filename, "w")
+    JSON.print(f, d)
+    close(f)
+    filename
 end
 
 """
@@ -81,29 +80,29 @@ function of the f(node).
 For example: write_json(tree.root, f, height=get_height, color=get_color)
 """
 function to_jdict(treeroot, vc::VisCalls; kvs...)
-  userfields = Dict{ASCIIString,Function}()
-  for (k, f) in kvs
-    userfields[string(k)] = f
-  end
-  return process(treeroot, vc, userfields, 0)::JDict
+    userfields = Dict{String,Function}()
+    for (k, f) in kvs
+        userfields[string(k)] = f
+    end
+    process(treeroot, vc, userfields, 0)::JDict
 end
 
-function process(node, vc::VisCalls, userfields::Dict{ASCIIString,Function}, depth::Int64)
-  d = JDict()
-  d["name"] = vc.get_name(node)
-  d["depth"] = !isnull(vc.get_depth) ? get(vc.get_depth)(node) : depth
+function process(node, vc::VisCalls, userfields::Dict{String,Function}, depth::Int64)
+    d = JDict()
+    d["name"] = vc.get_name(node)
+    d["depth"] = !isnull(vc.get_depth) ? get(vc.get_depth)(node) : depth
 
-  for (k, f) in userfields
-    d[k] = f(node)
-  end
+    for (k, f) in userfields
+        d[k] = f(node)
+    end
 
-  d["edgeLabel"] = ASCIIString[]
-  d["children"] = JDict[]
-  for (edgelabel, child) in vc.get_children(node)
-    push!(d["edgeLabel"], string(edgelabel))
-    push!(d["children"], process(child, vc, userfields, depth + 1))
-  end
-  return d::JDict
+    d["edgeLabel"] = String[]
+    d["children"] = JDict[]
+    for (edgelabel, child) in vc.get_children(node)
+        push!(d["edgeLabel"], string(edgelabel))
+        push!(d["children"], process(child, vc, userfields, depth + 1))
+    end
+    d::JDict
 end
 
 end #module

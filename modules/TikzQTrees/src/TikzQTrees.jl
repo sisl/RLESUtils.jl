@@ -40,26 +40,25 @@ module TikzQTrees
 
 export plottree, JDict
 
-import Compat.ASCIIString
 using RLESUtils, LatexUtils, PGFPlotUtils
 using TikzPictures
 using JSON
 
 #TODO: avoid typealias by wrapping in a type
-typealias JDict Dict{ASCIIString,Any}
+typealias JDict Dict{String,Any}
 
 function print_element!(io::IOBuffer, d::JDict)
-  name = d["name"] |> escape_latex
-  println(io, "[.{$name}")
-  for (i, child) in enumerate(d["children"])
-    if haskey(d, "edgeLabel")
-      edge_label = d["edgeLabel"][i]
-      print(io, "\\edge node[draw=none,bottom color=orange!25]{$(edge_label)}; ")
+    name = d["name"] |> escape_latex
+    println(io, "[.{$name}")
+    for (i, child) in enumerate(d["children"])
+        if haskey(d, "edgeLabel")
+            edge_label = d["edgeLabel"][i]
+            print(io, "\\edge node[draw=none,bottom color=orange!25]{$(edge_label)}; ")
+        end
+        child = convert(JDict, child)
+        print_element!(io, child)
     end
-    child = convert(JDict, child)
-    print_element!(io, child)
-  end
-  print(io, "]")
+    print(io, "]")
 end
 
 """
@@ -67,11 +66,11 @@ Takes a json file as input and writes tex/pdf TikzQTree output.
 """
 function plottree(filename::AbstractString;
                   kwargs...)
-  f = open(filename, "r")
-  d = JSON.parse(f)
-  d = convert(JDict, d) #convert is used because JSON.parse returns Dict{UTF8String}...
-  close(f)
-  plottree(d; kwargs...)
+    f = open(filename, "r")
+    d = JSON.parse(f)
+    d = convert(JDict, d) #convert is used because JSON.parse returns Dict{UTF8String}...
+    close(f)
+    plottree(d; kwargs...)
 end
 
 """
@@ -81,7 +80,7 @@ function plottree(d::JDict;
                   level_dist_cm::Float64=4.0,
                   outfileroot::AbstractString="qtree",
                   format::Symbol=:TEXPDF)
-  preamble = "\\usepackage{tikz-qtree}
+    preamble = "\\usepackage{tikz-qtree}
 \\usetikzlibrary{shadows,trees}
 \\tikzset{
 edge from parent fork down,
@@ -101,14 +100,14 @@ edge from parent/.style=
     {draw=blue!50,
     thick
     }}"
-  io = IOBuffer()
-  print(io, "\\Tree ")
-  print_element!(io, d)
-  println(io, ";")
+    io = IOBuffer()
+    print(io, "\\Tree ")
+    print_element!(io, d)
+    println(io, ";")
 
-  tp = TikzPicture(takebuf_string(io), preamble=preamble)
-  plot_tikz(outfileroot, tp, format)
-  tp
+    tp = TikzPicture(takebuf_string(io), preamble=preamble)
+    plot_tikz(outfileroot, tp, format)
+    tp
 end
 
 end #module
