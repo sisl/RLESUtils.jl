@@ -34,7 +34,7 @@
 
 module ArrayUtils
 
-export elements_equal, duplicate!
+export elements_equal, duplicate!, consec_unique, consec_unique_inds
 
 using Iterators
 
@@ -54,6 +54,44 @@ resize and copy! in 1 call
 function duplicate!{T}(x::Vector{T}, y::Vector{T})
   resize!(x, length(y))
   copy!(x, y)
+end
+
+"""
+Remove consecutive duplicates
+"""
+function consec_unique{T}(v::AbstractVector{T})
+    v1 = Vector{T}()
+    if length(v) > 0
+        laste = v[1]
+        push!(v1, laste)
+        for e in v
+            if e != laste
+                laste = e
+                push!(v1, laste)
+            end
+        end
+    end
+    v1
+end
+
+"""
+Same as consec_uniq, but return the indices
+"""
+function consec_unique_inds{T}(v::AbstractVector{T})
+    inds = Vector{Int64}()
+    if length(v) > 0
+        laste = v[1]
+        push!(inds, 1)
+        i = 1
+        for e in v
+            if e != laste
+                laste = e
+                push!(inds, i)
+            end
+            i += 1
+        end
+    end
+    inds 
 end
 
 end #module

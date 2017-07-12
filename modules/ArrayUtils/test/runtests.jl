@@ -50,3 +50,12 @@ y = Int64[1,2,3,4]
 x = Int64[]
 duplicate!(x, y)
 @test x == y #checks elementwise
+
+v = [8,8,8,9,5,5,8,8,1]
+vu = [8,9,5,8,1]
+vv = consec_unique(v)
+@test vv == vu
+
+vv = consec_unique_inds(v)
+vi = [1,4,5,7,9]
+@test vv == vi
