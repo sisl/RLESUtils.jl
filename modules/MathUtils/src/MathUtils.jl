@@ -41,7 +41,7 @@ export scale01, to_plusminus_b, to_plusminus_pi, to_plusminus_180, quantize,
     entropy_from_vec, entropy_from_counts,
     SEM, SEM_ymax, SEM_ymin,
     sum_to_1, logxpy, round_up_to_multiple, discretize_minmax, proportion,
-    item_counts
+    item_counts, diff_exceeds_thresh
 
 using StatsBase
 
@@ -250,6 +250,20 @@ function item_counts{T}(x::AbstractVector{T})
         D[item] = get(D, item, 0) + 1
     end
     D
+end
+
+"""
+Checks sequentially if the pairwise difference exceeds a threshold.
+f is a transform function.  Pass abs to check absolute difference.  + for positive diffs,
+- for negative difference thresholds
+"""
+function diff_exceeds_thresh(v, thresh, f::Function=abs)
+    #this implementation is significantly faster than any(diff(v) .> thresh) style
+    x1 = first(v)
+    for x2 in v
+        x1 = f(x2-x1) <= thresh ? x2 : return true
+    end
+    false
 end
 
 end #module

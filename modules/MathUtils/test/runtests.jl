@@ -65,3 +65,22 @@ logy = log(y)
 logz_ = logxpy(logx, logy)
 logz = log(z)
 @assert logz == logz_
+
+v0 = [1,1,2,1,3,4,3] #no exceedances
+v1 = [1,1,2,1,5,4,3] #exceeds in pos
+v2 = [1,2,2,1,3,-3,-1] #exceeds in neg
+v3 = [1,2,2,5,-3,1,0] #exceeds in both
+@assert diff_exceeds_thresh(v0, 3, abs) == false
+@assert diff_exceeds_thresh(v0, 3, +) == false
+@assert diff_exceeds_thresh(v0, 3, -) == false
+@assert diff_exceeds_thresh(v1, 3, abs) == true
+@assert diff_exceeds_thresh(v1, 3, +) == true
+@assert diff_exceeds_thresh(v1, 3, -) == false
+@assert diff_exceeds_thresh(v2, 3, abs) == true
+@assert diff_exceeds_thresh(v2, 3, +) == false
+@assert diff_exceeds_thresh(v2, 3, -) == true
+@assert diff_exceeds_thresh(v3, 3, abs) == true
+@assert diff_exceeds_thresh(v3, 3, +) == true
+@assert diff_exceeds_thresh(v3, 3, -) == true
+
+
