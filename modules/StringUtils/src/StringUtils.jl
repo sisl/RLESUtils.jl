@@ -101,10 +101,31 @@ macro printeval(line)
     return ex
 end
 
-function parse{T}(::Type{Vector{T}}, s::String)
-    s = replace(s, ['[',']'], "")
-    v = map(x->parse(T,x), split(s, ','))
+"""
+Convert a string to a Vector of numbers
+"""
+function parse{T<:Number}(::Type{Vector{T}}, s::String)
+    rex = r"^[^\[]*\[([^\]]+)]$"
+    m = match(rex, s)
+    v = map(x->parse(T,x), split(m.captures[1], ','))
     v
+end
+
+function convert(::Type{Vector{String}}, s::String)
+    rex = r"^[^\[]*\[([^\]]+)]$"
+    m = match(rex, s)
+    toks = split(replace(m.captures[1], "\"", ""), ',') #remove quotes and split
+    map!(x->replace(x, "\\\\", "\\"), toks) #extra slashes are introduced when calling string, remove them
+    out = convert(Vector{String}, toks)
+    out
+end
+
+function convert(::Type{Vector{Symbol}}, s::String)
+    rex = r"^[^\[]*\[([^\]]+)]$"
+    m = match(rex, s)
+    toks = split(m.captures[1], ',') 
+    out = map(x->Symbol(x[2:end]), toks) #remove the colon
+    out
 end
 
 end #module

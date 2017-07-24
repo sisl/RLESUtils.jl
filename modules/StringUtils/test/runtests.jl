@@ -57,3 +57,19 @@ s = "1[(45)78[]]"
 
 s = "12(456()"
 @test balanced_paren(s, 3) == 0 #not found
+
+
+v = [1,2,3]
+s = string(v)
+v2 = parse(Vector{Int}, s)
+@test v == v2
+
+v = ["one", "two"]
+s = string(v)
+v2 = convert(Vector{String}, s)
+@test v == v2
+
+v = [:one, :two]
+s = string(v)
+v2 = convert(Vector{Symbol}, s)
+@test v == v2
