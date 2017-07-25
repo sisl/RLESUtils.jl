@@ -32,61 +32,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-"""
-Goes into each sub-directory of 'logdir', loads the 'logfile', extracts each log named 'logname',
-stacks them all together into a single DataFrame, loads them into a TaggedDFLogger,
-and saves the log to 'outfileroot'.txt.
-Subdir name is loaded into column 'subdir_sym'.
-All logs in TaggedDFLogger are then merged into a single DataFrame, joined on subdir name.
-Main entry: logjoin()
-"""
-module LogJoiner
+using RLESUtils
+using DataFrameJoiner
 
-export logjoin
 
-using DataFrames
-using RLESUtils, Loggers, FileUtils, DataFrameUtils, StringUtils
-
-function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractString, 
-    lognames::Vector{T}, join_on::Vector{Symbol}=Symbol[:name], 
-    outfileroot::AbstractString=joinpath(logdir, "joined");
-    transpose_syms::Vector{Union{Void,Symbol}}=Union{Void,Symbol}[],
-    cast_types::Dict{String,Vector{Type}}=Dict{String,Vector{Type}}(),
-    subdir_sym::Symbol=:name,
-    verbose::Bool=false)
-
-    if isempty(transpose_syms)
-        transpose_syms = fill(nothing, length(lognames))
-    end
-    lognames = convert(Vector{String}, lognames)
-    joined = TaggedDFLogger()
-    for subdir in readdir_dir(logdir)
-        verbose && println("subdir=$subdir")
-        logs = load_log(LogFile(joinpath(subdir, logfile)))
-        for (logname, sym) in zip(lognames, transpose_syms)
-            verbose && println("  logname=$logname")
-            D = logs[logname]
-            if isa(sym, Symbol) #transpose if specified
-                D = transpose(D, sym)
-            end
-            D[dir_sym] = fill(basename(subdir), nrow(D))
-            if haskey(cast_types, logname) #convert types if specified
-                Ts = cast_types[logname]
-                convert_col_types!(D, Ts)
-            end
-            if !haskey(joined, logname)
-                set!(joined, logname, D)
-            else
-                append!(joined, logname, D)
-            end
-        end
-    end
-    save_log(LogFile("$outfileroot"), joined)
-
-    D1 = join([joined[k] for k in lognames]...; on=join_on)
-    writetable("$(outfileroot)_dataframe.csv.gz", D1) 
-
-    joined
-end
-
-end #module
