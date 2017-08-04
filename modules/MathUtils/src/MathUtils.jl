@@ -258,6 +258,7 @@ f is a transform function.  Pass abs to check absolute difference.  + for positi
 - for negative difference thresholds
 """
 function diff_exceeds_thresh(v, thresh, f::Function=abs)
+    isempty(v) && return false
     #this implementation is significantly faster than any(diff(v) .> thresh) style
     x1 = first(v)
     for x2 in v
