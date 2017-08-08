@@ -39,7 +39,7 @@ export BoundedPriorityQueue, enqueue!
 using DataStructures
 
 import DataStructures: enqueue!
-import Base: length, start, next, done, empty!, isempty, haskey
+import Base: length, start, next, done, empty!, isempty, haskey, keys, values
 
 type BoundedPriorityQueue{K,V}
     pq::PriorityQueue
@@ -93,5 +93,7 @@ end
 
 isempty(q::BoundedPriorityQueue) = isempty(q.pq) 
 haskey(q::BoundedPriorityQueue) = haskey(q.pq)
+keys(q::BoundedPriorityQueue) = keys(q.pq)
+values(q::BoundedPriorityQueue) = values(q.pq)
 
 end #module
