@@ -34,20 +34,16 @@
 
 module DataFrameSets
 
-export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, load_csvs, anyna, save_csvs, writemeta, metacolnames, recordcolnames, filenames
+export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir, 
+    load_csvs, anyna, save_csvs, writemeta, metacolnames, recordcolnames, filenames
 export getmeta, getrecords, labels, metadf, getmeta_array, getdata, reset_ids!
 export addrecord!
 export convert_to_array_cols!, split_data
-
-import Base: start, next, done, length, size, vcat, getindex, convert
-import Base: maximum, minimum, minmax
+export ZeroPad, FillPad, RepeatLastPad, tensor
 
 using RLESUtils, FileUtils, DataFrameUtils
 using Reexport
 @reexport using DataFrames
-import DataFrames: names
-import DataArrays.anyna
-import DataFrameUtils.convert_to_array_cols!
 
 const METAFILE = "_META.csv.gz"
 # metafile is a dataframe that contains:
@@ -103,9 +99,9 @@ end
 metacolnames(Ds::DFSet) = colnames(Ds.meta)
 recordcolnames(Ds::DFSet) = colnames(Ds.records[1])
 colnames(D::DataFrame) = map(string, names(D))
-names(Ds::DFSet) = names(Ds.records[1])
+DataFrames.names(Ds::DFSet) = names(Ds.records[1])
 
-getindex(Ds::DFSet, inds) = DFSet(Ds.meta[inds,:], Ds.records[inds])
+Base.getindex(Ds::DFSet, inds) = DFSet(Ds.meta[inds,:], Ds.records[inds])
 
 filenames(Ds::DFSet; dir::AbstractString="") = filenames(Ds.meta; dir=dir)
 filenames(Ds::DFSet, inds; dir::AbstractString="") = filenames(Ds.meta, inds; dir=dir)
@@ -134,28 +130,28 @@ function addrecord!{T}(Ds::DFSet, record::DataFrame, row::Vector{T}=Any[])
     push!(Ds.records, record)
 end
 
-start(Ds::DFSet) = 1 
-next(Ds::DFSet, i::Int64) = ((getmeta_array(Ds, i), getrecords(Ds, i)), i + 1)
-done(Ds::DFSet, i::Int64) = i > length(Ds) 
-length(Ds::DFSet) = length(Ds.records) #number of records
+Base.start(Ds::DFSet) = 1 
+Base.next(Ds::DFSet, i::Int64) = ((getmeta_array(Ds, i), getrecords(Ds, i)), i + 1)
+Base.done(Ds::DFSet, i::Int64) = i > length(Ds) 
+Base.length(Ds::DFSet) = length(Ds.records) #number of records
 
-function vcat(D1::DFSet, D2::DFSet)
+function Base.vcat(D1::DFSet, D2::DFSet)
     DFSet(
       vcat(D1.meta, D2.meta),
       vcat(D1.records, D2.records)
       )
 end
 
-anyna(Ds::DFSet) = anyna(Ds.records)
-anyna(Ds::Vector{DataFrame}) = any(map(anyna, Ds))
-anyna(D::DataFrame) = any(convert(Array, map(anyna, eachcol(D))))
+DataArrays.anyna(Ds::DFSet) = anyna(Ds.records)
+DataArrays.anyna(Ds::Vector{DataFrame}) = any(map(anyna, Ds))
+DataArrays.anyna(D::DataFrame) = any(convert(Array, map(anyna, eachcol(D))))
 
 """
 returns the size of each record
 if check is true, then check that all records have the same size
 else just return the size of the first one and assume it's correct
 """
-function size(Ds::DFSet; check::Bool=false)
+function Base.size(Ds::DFSet; check::Bool=false)
     recs = getrecords(Ds)
     ndat = length(recs)
     nr = nrow(recs[1])
@@ -179,7 +175,7 @@ end
 """
 Convert DFSet to a 3D array
 """
-function convert(::Type{Array}, Ds::DFSet)
+function Base.convert(::Type{Array}, Ds::DFSet)
     recs = getrecords(Ds)
     A1 = convert(Array, recs[1]) #use first one to get eltype
     A = Array(eltype(A1), size(Ds)) #3D array
@@ -190,11 +186,11 @@ function convert(::Type{Array}, Ds::DFSet)
     A 
 end
 
-function maximum(Ds::DFSet, col::Symbol)
+function Base.maximum(Ds::DFSet, col::Symbol)
     maximum(map(D->maximum(D[col]), getrecords(Ds)))
 end
 
-function minimum(Ds::DFSet, col::Symbol)
+function Base.minimum(Ds::DFSet, col::Symbol)
     minimum(map(D->minimum(D[col]), getrecords(Ds)))
 end
 
@@ -202,12 +198,12 @@ end
 Find the global (minimum,maximum) for each column in a Ds.
 Returns a vector of min/max tuples.
 """
-function minmax(Ds::DFSet)
+function Base.minmax(Ds::DFSet)
     ns = names(Ds)
     [(minimum(Ds, ns[i]), maximum(Ds, ns[i])) for i=1:length(ns)]
 end
 
-function convert_to_array_cols!(Ds::DFSet)
+function DataFrameUtils.convert_to_array_cols!(Ds::DFSet)
     for i = 1:length(Ds)
         convert_to_array_cols!(Ds.records[i])
     end
@@ -228,7 +224,7 @@ function DFSetLabeled(Ds::DFSet, metacolumn::Symbol; transform::Function=identit
     Dl
 end
 
-function getindex{T}(Dl::DFSetLabeled{T}, inds) 
+function Base.getindex{T}(Dl::DFSetLabeled{T}, inds) 
     out = DFSetLabeled(Dl.data[inds], Dl.labels[inds])
     out
 end
@@ -274,28 +270,28 @@ returns the size of each record
 if check is true, then check that all records have the same size
 else just return the size of the first one and assume it's correct
 """
-function size(Dl::DFSetLabeled; check::Bool=false)
+function Base.size(Dl::DFSetLabeled; check::Bool=false)
     size(Dl.data; check=check)
 end
 
-anyna(Dl::DFSetLabeled) = anyna(Dl.data)
+DataArrays.anyna(Dl::DFSetLabeled) = anyna(Dl.data)
 
-start(Dl::DFSetLabeled) = 1 
-next(Dl::DFSetLabeled, i::Int64) = ((getmeta_array(Dl,i), getrecords(Dl,i), labels(Dl,i)), i + 1)
-done(Dl::DFSetLabeled, i::Int64) = i > length(Dl) 
-length(Dl::DFSetLabeled) = length(Dl.data) #number of records
+Base.start(Dl::DFSetLabeled) = 1 
+Base.next(Dl::DFSetLabeled, i::Int64) = ((getmeta_array(Dl,i), getrecords(Dl,i), labels(Dl,i)), i + 1)
+Base.done(Dl::DFSetLabeled, i::Int64) = i > length(Dl) 
+Base.length(Dl::DFSetLabeled) = length(Dl.data) #number of records
 
-function vcat{T}(Dl1::DFSetLabeled{T}, Dl2::DFSetLabeled{T})
+function Base.vcat{T}(Dl1::DFSetLabeled{T}, Dl2::DFSetLabeled{T})
     DFSetLabeled(
       vcat(Dl1.data, Dl2.data),
       vcat(Dl1.labels, Dl2.labels)
       )
 end
 
-maximum(Dl::DFSetLabeled, col::Symbol) = maximum(Dl.data, col)
-minimum(Dl::DFSetLabeled, col::Symbol) = minimum(Dl.data, col)
+Base.maximum(Dl::DFSetLabeled, col::Symbol) = maximum(Dl.data, col)
+Base.minimum(Dl::DFSetLabeled, col::Symbol) = minimum(Dl.data, col)
 
-function convert_to_array_cols!(Dl::DFSetLabeled)
+function DataFrameUtils.convert_to_array_cols!(Dl::DFSetLabeled)
     convert_to_array_cols!(Dl.data)
 end
 
@@ -318,6 +314,37 @@ function split_data(D::DFSetLabeled, frac::Float64)
     ids2 = vcat(ids2...)
 
     D[ids1], D[ids2]
+end
+
+function Base.convert(::Type{DataFrame}, D::DFSet)
+    for i = 1:length(D)
+        ns = names(D.records[i]) 
+        D.records[i][:id] = i 
+        D.records[i] = D.records[i][[:id; ns]]
+    end
+
+    df = D.records[1]
+    for i=2:length(D)
+        append!(df, D.records[i])
+    end
+    return join(df, D.meta; on=:id)
+end
+
+DataFrameUtils.ZeroPad(D::DFSet) = ZeroPad(D.records[1])
+function DataFrameUtils.pad!(p::PadMethod, D::DFSet, nrows::Int)
+    for d in D.records
+        pad!(p, d, nrows)
+    end
+end
+
+function tensor(D::DFSet)
+    cat(3, [convert(Array, r) for r in D.records]...)
+end
+
+function Base.delete!(D::DFSet, col::Symbol)
+    for d in D.records
+        delete!(d, col)
+    end
 end
 
 end #module

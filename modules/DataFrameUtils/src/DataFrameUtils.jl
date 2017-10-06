@@ -34,7 +34,8 @@
 
 module DataFrameUtils
 
-export convert_col_types!, convert_to_array_cols!, find_in_col, join_all
+export convert_col_types!, convert_to_array_cols!, find_in_col, join_all,
+    PadMethod, ZeroPad, FillPad, RepeatLastPad, pad!
 
 using DataFrames
 using StringUtils
@@ -73,6 +74,25 @@ function join_all{T<:AbstractDataFrame}(Ds::AbstractVector{T}; kwargs...)
         d = join(d, Ds[i]; kwargs...)
     end
     d
+end
+
+abstract PadMethod
+immutable FillPad <: PadMethod
+    vec::Vector{Any}
+end
+ZeroPad(d::DataFrame) = FillPad(zero.(eltypes(d)))
+immutable RepeatLastPad <: PadMethod end
+
+function pad!(p::FillPad, d::DataFrame, nrows::Int)
+    while nrow(d) < nrows
+        push!(d, p.vec)
+    end
+end
+function pad!(p::RepeatLastPad, d::DataFrame, nrows::Int)
+    row = convert(Array, d[end, :])
+    while nrow(d) < nrows
+        push!(d, row)
+    end
 end
 
 end #module
