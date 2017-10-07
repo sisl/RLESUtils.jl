@@ -69,7 +69,7 @@ function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractStr
             if isa(sym, Symbol) #transpose if specified
                 D = transpose(D, sym)
             end
-            D[dir_sym] = fill(basename(subdir), nrow(D))
+            D[subdir_sym] = fill(basename(subdir), nrow(D))
             if haskey(cast_types, logname) #convert types if specified
                 Ts = cast_types[logname]
                 convert_col_types!(D, Ts)
