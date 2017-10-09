@@ -39,9 +39,11 @@ export DFSet, DFSetLabeled, colnames, setlabels, setlabels!, load_dir,
 export getmeta, getrecords, labels, metadf, getmeta_array, getdata, reset_ids!
 export addrecord!
 export convert_to_array_cols!, split_data
-export ZeroPad, FillPad, RepeatLastPad, tensor
+export ZeroPad, FillPad, RepeatLastPad, tensor, transform!, names_by_type
+export max_nrows, min_nrows
 
 using RLESUtils, FileUtils, DataFrameUtils
+using StatsBase
 using Reexport
 @reexport using DataFrames
 
@@ -172,6 +174,9 @@ function Base.size(Ds::DFSet; check::Bool=false)
     (ndat, nr, nc)
 end
 
+max_nrows(d::DFSet) = maximum([nrow(r) for r in d.records])
+min_nrows(d::DFSet) = minimum([nrow(r) for r in d.records])
+
 """
 Convert DFSet to a 3D array
 """
@@ -296,24 +301,20 @@ function DataFrameUtils.convert_to_array_cols!(Dl::DFSetLabeled)
 end
 
 """
-Maintains label proportions
+Randomly split data into two sets by frac, but maintains label proportions
 """
 function split_data(D::DFSetLabeled, frac::Float64)
     @assert 0.0 < frac < 1.0
     labelset = unique(D.labels)
-    ids = map(x->find(D.labels .== x), labelset)
-    ids1 = map(ids) do id_vec
-        split_point = floor(Int, length(id_vec)*frac)
-        id_vec[1:split_point]
+    ids = [find(D.labels .== l) for l in labelset]
+    ids1, ids2 = Int[], Int[] 
+    for idv in ids 
+        n = floor(Int, length(idv)*frac)
+        i1 = sample(1:length(idv), n; replace=false)
+        append!(ids1, i1) 
+        append!(ids2, setdiff(1:length(idv), i1))
     end
-    ids2 = map(ids) do id_vec
-        split_point = floor(Int, length(id_vec)*frac)
-        id_vec[(split_point+1):end]
-    end
-    ids1 = vcat(ids1...)
-    ids2 = vcat(ids2...)
-
-    D[ids1], D[ids2]
+    (D[ids1], D[ids2])
 end
 
 function Base.convert(::Type{DataFrame}, D::DFSet)
@@ -337,8 +338,9 @@ function DataFrameUtils.pad!(p::PadMethod, D::DFSet, nrows::Int)
     end
 end
 
-function tensor(D::DFSet)
-    cat(3, [convert(Array, r) for r in D.records]...)
+_transpose_xy(X, b_transpose::Bool) = b_transpose ? X' : X
+function tensor(D::DFSet; transpose_xy::Bool=false)
+    cat(3, [_transpose_xy(convert(Array, r), transpose_xy) for r in D.records]...)
 end
 
 function Base.delete!(D::DFSet, col::Symbol)
@@ -346,5 +348,18 @@ function Base.delete!(D::DFSet, col::Symbol)
         delete!(d, col)
     end
 end
+
+function Base.vcat(d::DFSet, col::Symbol)
+    vcat([convert(Array,r[col]) for r in d.records]...)
+end
+
+function transform!(f::Function, d::DFSet, col::Symbol)
+    for r in d.records
+        r[col] = f(r[col])
+    end
+end
+
+DataFrameUtils.names_by_type(d::DFSet) = names_by_type(d.records[1])
+DataFrameUtils.names_by_type(d::DFSet, typ::Type) = names_by_type(d.records[1], typ)
 
 end #module

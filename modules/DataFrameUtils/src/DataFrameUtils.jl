@@ -35,7 +35,7 @@
 module DataFrameUtils
 
 export convert_col_types!, convert_to_array_cols!, find_in_col, join_all,
-    PadMethod, ZeroPad, FillPad, RepeatLastPad, pad!
+    PadMethod, ZeroPad, FillPad, RepeatLastPad, pad!, names_by_type
 
 using DataFrames
 using StringUtils
@@ -93,6 +93,23 @@ function pad!(p::RepeatLastPad, d::DataFrame, nrows::Int)
     while nrow(d) < nrows
         push!(d, row)
     end
+end
+
+function names_by_type(D::DataFrame)
+    d = Dict{Type,Vector{Symbol}}()
+    for (nam, typ) in zip(names(D), eltypes(D))
+        if !haskey(d, typ)
+            d[typ] = [nam]
+        else
+            push!(d[typ], nam)
+        end
+    end
+    d
+end
+
+function names_by_type(D::DataFrame, typ::Type)
+    i = find(typ .== eltypes(D))
+    return names(D)[i]
 end
 
 end #module

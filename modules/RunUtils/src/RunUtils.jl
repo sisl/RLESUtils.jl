@@ -84,4 +84,6 @@ function julia_process(lst::Vector{JuliaSource}, np::Int64)
     results
 end
 
+Base.print(js::JuliaSource) = print(js.src)
+
 end #module
