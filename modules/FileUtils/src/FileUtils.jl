@@ -59,6 +59,7 @@ end
 
 #fast way to make a textfile that outputs each arg and kwarg to a line
 function textfile(file::AbstractString, args...; kwargs...)
+    mkpath(dirname(file))
     open(file, "w") do f
         for x in args
             println(f, x)

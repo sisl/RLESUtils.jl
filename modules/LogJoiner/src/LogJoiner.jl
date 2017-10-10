@@ -89,4 +89,22 @@ function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractStr
     joined
 end
 
+function logjoin(logdir::AbstractString, logfile::AbstractString, 
+    outfileroot::AbstractString=joinpath(logdir,"joined"),
+    verbose::Bool=false)
+
+    joined = nothing
+    for subdir in readdir_dir(logdir)
+        verbose && println("subdir=$subdir")
+        d = readtable(joinpath(subdir, logfile))
+        if joined == nothing
+            joined = d
+        else
+            append!(joined, d)
+        end
+    end
+
+    writetable("$outfileroot.csv.gz", joined)
+end
+
 end #module
