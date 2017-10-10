@@ -103,7 +103,11 @@ recordcolnames(Ds::DFSet) = colnames(Ds.records[1])
 colnames(D::DataFrame) = map(string, names(D))
 DataFrames.names(Ds::DFSet) = names(Ds.records[1])
 
-Base.getindex(Ds::DFSet, inds) = DFSet(Ds.meta[inds,:], Ds.records[inds])
+function Base.getindex(Ds::DFSet, inds)
+    d = DFSet(Ds.meta[inds,:], Ds.records[inds])
+    reset_ids!(d)
+    d
+end
 
 filenames(Ds::DFSet; dir::AbstractString="") = filenames(Ds.meta; dir=dir)
 filenames(Ds::DFSet, inds; dir::AbstractString="") = filenames(Ds.meta, inds; dir=dir)
@@ -230,8 +234,9 @@ function DFSetLabeled(Ds::DFSet, metacolumn::Symbol; transform::Function=identit
 end
 
 function Base.getindex{T}(Dl::DFSetLabeled{T}, inds) 
-    out = DFSetLabeled(Dl.data[inds], Dl.labels[inds])
-    out
+    dl = DFSetLabeled(Dl.data[inds], Dl.labels[inds])
+    reset_ids!(dl)
+    dl
 end
 
 getmeta(Dl::DFSetLabeled) = getmeta(Dl.data)
@@ -303,16 +308,21 @@ end
 """
 Randomly split data into two sets by frac, but maintains label proportions
 """
-function split_data(D::DFSetLabeled, frac::Float64)
+function split_data(D::DFSetLabeled, frac::Float64; b_shuffle::Bool=true)
     @assert 0.0 < frac < 1.0
     labelset = unique(D.labels)
     ids = [find(D.labels .== l) for l in labelset]
     ids1, ids2 = Int[], Int[] 
     for idv in ids 
         n = floor(Int, length(idv)*frac)
-        i1 = sample(1:length(idv), n; replace=false)
+        i1 = sort(sample(idv, n; replace=false))
+        i2 = sort(setdiff(idv, i1))
         append!(ids1, i1) 
-        append!(ids2, setdiff(1:length(idv), i1))
+        append!(ids2, i2)
+    end
+    if b_shuffle
+        shuffle!(ids1)
+        shuffle!(ids2)
     end
     (D[ids1], D[ids2])
 end
