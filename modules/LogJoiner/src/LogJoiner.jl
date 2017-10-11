@@ -62,7 +62,12 @@ function logjoin{T<:AbstractString}(logdir::AbstractString, logfile::AbstractStr
     joined = TaggedDFLogger()
     for subdir in readdir_dir(logdir)
         verbose && println("subdir=$subdir")
-        logs = load_log(LogFile(joinpath(subdir, logfile)))
+        f = LogFile(joinpath(subdir, logfile))
+        if !isfile(f.name)
+            warn("file not found $(f.name), skipping...")
+            break
+        end
+        logs = load_log(f)
         for (logname, sym) in zip(lognames, transpose_syms)
             verbose && println("  logname=$logname")
             D = logs[logname]
@@ -96,7 +101,12 @@ function logjoin(logdir::AbstractString, logfile::AbstractString,
     joined = nothing
     for subdir in readdir_dir(logdir)
         verbose && println("subdir=$subdir")
-        d = readtable(joinpath(subdir, logfile))
+        f = joinpath(subdir, logfile)
+        if !isfile(f)
+            warn("file not found $f, skipping...")
+            break
+        end
+        d = readtable(f)
         if joined == nothing
             joined = d
         else
