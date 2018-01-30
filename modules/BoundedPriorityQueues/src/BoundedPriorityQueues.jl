@@ -41,11 +41,11 @@ using DataStructures
 import DataStructures: enqueue!
 import Base: length, start, next, done, empty!, isempty, haskey, keys, values
 
-type BoundedPriorityQueue{K,V}
+mutable struct BoundedPriorityQueue{K,V}
     pq::PriorityQueue
     N::Int64
 
-    function BoundedPriorityQueue(N::Int64, o::Base.Order.Ordering=Base.Order.Forward) 
+    function BoundedPriorityQueue{K,V}(N::Int64, o::Base.Order.Ordering=Base.Order.Forward) where {K,V}
         #higher is kept
         new(PriorityQueue(K, V, o), N)
     end
