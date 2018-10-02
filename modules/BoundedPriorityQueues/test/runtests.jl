@@ -32,9 +32,10 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-using RLESUtils
-using BoundedPriorityQueues
-using Base.Test
+#using RLESUtils
+#using BoundedPriorityQueues
+using Main.BoundedPriorityQueues
+using Test
 
 q = BoundedPriorityQueue{String,Float64}(5)
 enqueue!(q, "one", 1.0)
@@ -47,7 +48,7 @@ enqueue!(q, "five", 5.0)
 enqueue!(q, "six", 6.0)
 @test length(q) == 5
 
-A = collect(q)
+A = collect(BPQIterator(q))
 @test A[1] == ("six"=>6.0)
 @test A[2] == ("five"=>5.0)
 @test A[5] == ("two"=>2.0)

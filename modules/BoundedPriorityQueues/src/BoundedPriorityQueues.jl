@@ -34,24 +34,22 @@
 
 module BoundedPriorityQueues
 
-export BoundedPriorityQueue, enqueue!
+export BoundedPriorityQueue, enqueue!, BPQIterator
 
 using DataStructures
 
-import DataStructures: enqueue!
-import Base: length, start, next, done, empty!, isempty, haskey, keys, values
-
-type BoundedPriorityQueue{K,V}
-    pq::PriorityQueue
+mutable struct BoundedPriorityQueue{K,V}
+    pq::PriorityQueue{K,V}
     N::Int64
 
-    function BoundedPriorityQueue(N::Int64, o::Base.Order.Ordering=Base.Order.Forward) 
+    function BoundedPriorityQueue{K,V}(N::Int64, o::Base.Order.Ordering=Base.Order.Forward) where {K,V}
         #higher is kept
-        new(PriorityQueue(K, V, o), N)
+        new{K,V}(PriorityQueue{K,V}(o), N)
     end
 end
 
-function enqueue!{K,V}(q::BoundedPriorityQueue{K,V}, k::K, v::V; make_copy::Bool=false)
+function DataStructures.enqueue!(q::BoundedPriorityQueue{K,V}, k::K, v::V;
+    make_copy::Bool=false) where {K,V}
     haskey(q.pq, k) && return #keys must be unique
     if make_copy
         k = deepcopy(k)
@@ -62,38 +60,31 @@ function enqueue!{K,V}(q::BoundedPriorityQueue{K,V}, k::K, v::V; make_copy::Bool
     end
 end
 
-length(q::BoundedPriorityQueue) = length(q.pq)
-
-"""
-Ordered iterator
-"""
-type BPQIterator{K,V}
-    sorted_pairs::Vector{Pair{K,V}}
-    index::Int64
-end
-function start(q::BoundedPriorityQueue)
-    kvs = collect(q.pq)
-    sort!(kvs, by=x->x[2], rev=(q.pq.o==Base.Order.ForwardOrdering()))
-    BPQIterator(kvs, 1)
-end
-
-done(q::BoundedPriorityQueue, it::BPQIterator) = it.index > length(it.sorted_pairs)
-
-function next(q::BoundedPriorityQueue, it::BPQIterator)
-    item = it.sorted_pairs[it.index]
-    it.index += 1
-    (item, it)
-end
-
-function empty!(q::BoundedPriorityQueue)
+Base.length(q::BoundedPriorityQueue) = length(q.pq)
+Base.isempty(q::BoundedPriorityQueue) = isempty(q.pq) 
+Base.haskey(q::BoundedPriorityQueue) = haskey(q.pq)
+Base.keys(q::BoundedPriorityQueue) = keys(q.pq)
+Base.values(q::BoundedPriorityQueue) = values(q.pq)
+function Base.empty!(q::BoundedPriorityQueue)
     while !isempty(q.pq)
         dequeue!(q.pq)
     end
 end
 
-isempty(q::BoundedPriorityQueue) = isempty(q.pq) 
-haskey(q::BoundedPriorityQueue) = haskey(q.pq)
-keys(q::BoundedPriorityQueue) = keys(q.pq)
-values(q::BoundedPriorityQueue) = values(q.pq)
+"""
+Ordered iterator
+"""
+struct BPQIterator{K,V}
+    sorted_pairs::Vector{Pair{K,V}}
+
+    function BPQIterator(q::BoundedPriorityQueue{K,V}) where {K,V}
+        kvs = collect(q.pq)
+        sort!(kvs, by=x->x[2], rev=(q.pq.o==Base.Order.ForwardOrdering()))
+        new{K,V}(kvs)
+    end
+end
+Base.length(it::BPQIterator) = length(it.sorted_pairs)
+Base.iterate(it::BPQIterator) = iterate(it.sorted_pairs)
+Base.iterate(it::BPQIterator, state) = iterate(it.sorted_pairs, state)
 
 end #module

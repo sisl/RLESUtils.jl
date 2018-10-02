@@ -34,40 +34,40 @@
 
 module RNGWrapper
 
-export RSG, set_global, next, next!, set_from_seed!, hash, ==, isequal, length
+export RSG, set_global, next, next!, set_from_seed! 
 
-using Iterators
-import Base: next, hash, ==, isequal, length
+using Random
+using Base.Iterators, IterTools
 
-type RSG #Seed generator
-  state::Vector{UInt32}
+struct RSG #Seed generator
+    state::Vector{UInt32}
 end
 function RSG(len::Int64=1, seed::Int64=0)
-  return seed_to_state_itr(len, seed) |> collect |> RSG
+    return seed_to_state_itr(len, seed) |> collect |> RSG
 end
 
 set_from_seed!(rsg::RSG, len::Int64, seed::Int64) = copy!(rsg.state, seed_to_state_itr(len, seed))
-seed_to_state_itr(len::Int64, seed::Int64) = take(iterate(hash_uint32, seed), len)
+seed_to_state_itr(len::Int64, seed::Int64) = take(iterated(hash_uint32, seed), len)
 
 function next!(rsg::RSG)
-  map!(hash_uint32, rsg.state)
-  return rsg
+    map!(hash_uint32, rsg.state, rsg.state)
+    return rsg
 end
 function next(rsg0::RSG)
-  rsg1 = deepcopy(rsg0)
-  next!(rsg1)
-  return rsg1
+    rsg1 = deepcopy(rsg0)
+    next!(rsg1)
+    return rsg1
 end
 
 set_global(rsg::RSG) = set_gv_rng_state(rsg.state)
 set_gv_rng_state(i::UInt32) = set_gv_rng_state([i])
-set_gv_rng_state(a::Vector{UInt32}) = srand(a) #
+set_gv_rng_state(a::Vector{UInt32}) = Random.seed!(a) #
 #set_gv_rng_state(a::Vector{UInt32}) = Base.dSFMT.dsfmt_gv_init_by_array(a) #doesn't seem to work anymore
 hash_uint32(x) = UInt32(hash(x) & 0x00000000FFFFFFFF) #take lower 32-bits
 
-length(rsg::RSG) = length(rsg.state)
-hash(rsg::RSG) = hash(rsg.state)
-==(rsg1::RSG, rsg2::RSG) = rsg1.state == rsg2.state
-isequal(rsg1::RSG, rsg2::RSG) = rsg1 == rsg2
+Base.length(rsg::RSG) = length(rsg.state)
+Base.hash(rsg::RSG) = hash(rsg.state)
+Base.:(==)(rsg1::RSG, rsg2::RSG) = rsg1.state == rsg2.state
+Base.isequal(rsg1::RSG, rsg2::RSG) = rsg1 == rsg2
 
-end
+end #module
