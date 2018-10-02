@@ -36,9 +36,6 @@ module IFTTTUtils
 
 export sendifttt, trigger, trigger_from_keyfile, set_auth_token
 
-using Compat
-import Compat.ASCIIString
-
 using Requests
 
 const BASEURL = "https://maker.ifttt.com"
@@ -64,12 +61,12 @@ function set_auth_token(token::AbstractString)
 end
 
 function sendifttt(event::AbstractString=EVENT, keyfile::AbstractString=KEYFILE; 
-    value1::ASCIIString="",
-    value2::ASCIIString="",
-    value3::ASCIIString="") 
+    value1::String="",
+    value2::String="",
+    value3::String="") 
 
     trigger_from_keyfile(event, keyfile; 
-        json=Dict{ASCIIString,ASCIIString}(
+        json=Dict{String,String}(
             "value1" => value1,
             "value2" => value2,
             "value3" => value3))
@@ -81,7 +78,7 @@ function trigger_from_keyfile(event::AbstractString, keyfile::AbstractString; kw
 end
      
 function trigger(event::AbstractString, key::AbstractString; 
-    json::Dict{ASCIIString,ASCIIString}=Dict{ASCIIString,ASCIIString}())
+    json::Dict{String,String}=Dict{String,String}())
     url = form_trigger_url(event, key)
     post(url; json=json)
 end

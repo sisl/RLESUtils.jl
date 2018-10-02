@@ -36,13 +36,11 @@ module LookupCallbacks
 
 export LookupCallback
 
-import Compat.ASCIIString
-
 type LookupCallback
-  lookups::Vector{ASCIIString}
+  lookups::Vector{String}
   callback::Function
 end
-LookupCallback(lookups::Vector{ASCIIString}) = LookupCallback(lookups, identity)
-LookupCallback(lookup::ASCIIString, callback::Function=identity) = LookupCallback([lookup], callback)
+LookupCallback(lookups::Vector{String}) = LookupCallback(lookups, identity)
+LookupCallback(lookup::String, callback::Function=identity) = LookupCallback([lookup], callback)
 
 end #module

@@ -36,12 +36,10 @@ module DataBalancer
 
 export balance_class
 
-import Compat.ASCIIString
-
 using Datasets
 using DataFrameSets
 
-function balance_class(data_in::ASCIIString, labelsym::Symbol, data_out::ASCIIString)
+function balance_class(data_in::AbstractString, labelsym::Symbol, data_out::AbstractString)
     dl_in = dataset(data_in, labelsym)
     dl_out = balance_class(dl_in)
     save_csvs(joinpath(datadir(), data_out), getdata(dl_out))

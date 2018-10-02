@@ -34,13 +34,10 @@
 
 module RLESUtils
 
-const MODULEDIR = joinpath(dirname(@__FILE__), "..", "modules")
-
-include(joinpath(MODULEDIR, "ModLoader", "src", "ModLoader.jl"))
-
-using .ModLoader
-load_to_path(MODULEDIR)
+const MODULEDIR = joinpath(@__DIR__, "..", "modules")
 const PKGS = readdir(MODULEDIR)
+
+__init__() = push!(LOAD_PATH, MODULEDIR)
 
 """
 Test an individual submodule

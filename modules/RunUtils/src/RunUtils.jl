@@ -46,10 +46,8 @@ module RunUtils
 
 export JuliaSource, julia_process
 
-import Compat.ASCIIString
-
 immutable JuliaSource
-    src::ASCIIString
+    src::String
 end
 
 function julia_process(lst::Vector{JuliaSource}, np::Int64)

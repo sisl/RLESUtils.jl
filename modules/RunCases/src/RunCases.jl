@@ -38,20 +38,18 @@
 
 module RunCases
 
-import Compat.ASCIIString
-
 export Case, Cases, generate_cases, add_field!, get, set!, savecase, loadcase
 export get, start, done, next, length
 
 import Base: get, start, done, next, length
 
-using Iterators
+using Base.Iterators
 using RLESUtils, ConvertUtils #parent of RunCases
 
 type Case
-  data::Dict{ASCIIString,Any}
+  data::Dict{String,Any}
 end
-Case() = Case(Dict{ASCIIString, Any}())
+Case() = Case(Dict{String, Any}())
 
 type Cases
   data::Vector{Case}
@@ -59,7 +57,7 @@ end
 Cases() = Cases(Case[])
 Cases(case::Case) = Cases([case])
 
-function generate_cases{T<:AbstractVector}(keyvals::Pair{ASCIIString, T}...)
+function generate_cases{T<:AbstractVector}(keyvals::Pair{String, T}...)
   #generates a vector of runcases based on cartesian product of the keyvals together
   #returns Cases
   #FIXME(rlee): This method of using vectors of the parameters uses a lot of space.  Switch it over to storing indices
@@ -89,16 +87,16 @@ end
 
 set!(case::Case, key::AbstractString, value) = case.data[key] = value
 
-function kv_expand{T<:AbstractVector}(kV::Pair{ASCIIString, T})
+function kv_expand{T<:AbstractVector}(kV::Pair{String, T})
   # expand (k, V) to a vector of where each element is (k, V_i)
   k, V = kV
   tmp = map(v -> (k, v), V)
-  return convert(Vector{Tuple{ASCIIString,Any}}, tmp)
+  return convert(Vector{Tuple{String,Any}}, tmp)
 end
 
 function make_case{S <: AbstractString}(kvs::Tuple{S, Any}...)
   # take all the (k, V_i) and populate a dict, then feed into Case
-  d = Dict{ASCIIString, Any}()
+  d = Dict{String, Any}()
   for (k, v) in kvs
     d[k] = v
   end

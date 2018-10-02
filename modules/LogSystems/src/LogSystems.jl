@@ -47,16 +47,15 @@ module LogSystems
 
 export LogDB, LogSystem, list_logs, get_observer, register_log!, send_to!, empty_listeners!
 
-import Compat.ASCIIString
 import Base: clear!
 
 using RLESUtils, Observers, Loggers
 
-typealias NamesMap Dict{ASCIIString,Vector{ASCIIString}}
-typealias TypesMap Dict{ASCIIString,Vector{DataType}}
-typealias NameMap Dict{ASCIIString,ASCIIString}
-typealias FuncMap Dict{ASCIIString,Function}
-typealias Vars Dict{ASCIIString,Any}
+typealias NamesMap Dict{String,Vector{String}}
+typealias TypesMap Dict{String,Vector{DataType}}
+typealias NameMap Dict{String,String}
+typealias FuncMap Dict{String,Function}
+typealias Vars Dict{String,Any}
 
 type LogDB
     var_names::NamesMap

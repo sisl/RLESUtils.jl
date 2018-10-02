@@ -36,8 +36,6 @@ module GitUtils
 
 export get_SHA, pkg_SHA, installed_SHA
 
-using Compat
-
 installed_SHA() = map(k -> (Symbol(k), pkg_SHA(k)), keys(Pkg.installed()))
 
 pkg_SHA(pkg::AbstractString) = get_SHA(Pkg.dir(pkg))

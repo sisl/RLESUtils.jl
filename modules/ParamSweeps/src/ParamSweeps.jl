@@ -40,7 +40,7 @@ module ParamSweeps
 export ParamSweep, Iterable, run
 export KWParamSweep
 
-using Iterators
+using Base.Iterators
 
 import Base: empty!, push!, run, start, next, done, keys, values, length
 

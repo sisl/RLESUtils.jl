@@ -39,7 +39,6 @@ export truepos, trueneg, falsepos, falseneg
 export truepos_indices, trueneg_indices, falsepos_indices, falseneg_indices
 export recall, accuracy, f1_score
 
-import Compat.ASCIIString
 import Base.precision
 
 type ConfusionMat

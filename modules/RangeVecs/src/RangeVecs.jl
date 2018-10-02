@@ -40,7 +40,7 @@ module RangeVecs
 
 export RangeVec, iterator
 
-using Iterators
+using Base.Iterators
 import Base: collect, convert, string, show
 
 typealias RangeVecType Union{Int64,UnitRange{Int64}}

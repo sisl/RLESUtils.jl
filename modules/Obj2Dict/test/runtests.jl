@@ -32,7 +32,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # *****************************************************************************
 
-import Compat.ASCIIString
 using RLESUtils, Obj2Dict
 
 using Base.Test
@@ -40,14 +39,14 @@ import Base.==
 
 type MySubType
   p::Int64
-  q::ASCIIString
+  q::String
 end
 MySubType() = MySubType(0,"0")
 ==(x::MySubType, y::MySubType) = x.p == y.p && x.q == y.q
 
 type MyType
   a::Int64
-  b::ASCIIString
+  b::String
   c::MySubType
 end
 MyType() = MyType(0,"0",MySubType())
@@ -55,7 +54,7 @@ MyType() = MyType(0,"0",MySubType())
 
 type MyTypeArray
   a::Int64
-  b::ASCIIString
+  b::String
   c::Array{MySubType}
 end
 MyTypeArray() = MyTypeArray(0,"0",[MySubType() for i=1:2])

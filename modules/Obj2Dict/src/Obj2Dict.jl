@@ -40,8 +40,6 @@ module Obj2Dict
 
 #export to_obj, to_dict, save_obj, load_obj
 
-import Compat.ASCIIString
-
 import Base.convert
 using JSON
 using DataStructures
@@ -51,9 +49,9 @@ typealias ObjDict{T<:AbstractString} Dict{T,Any}
 typealias Primitive Union{Integer, Real, AbstractString, Symbol, Void}
 
 function to_dict(x)
-  d = ObjDict{ASCIIString}()
+  d = ObjDict{String}()
   d["type"] = string(typeof(x))
-  d["data"] = ObjDict{ASCIIString}()
+  d["data"] = ObjDict{String}()
   for sym in fieldnames(x)
     d["data"][string(sym)] = to_dict(getfield(x, sym))
   end
@@ -61,7 +59,7 @@ function to_dict(x)
 end
 
 function to_dict(x::Primitive)
-  d = ObjDict{ASCIIString}()
+  d = ObjDict{String}()
   d["type"] = string(typeof(x))
   d["data"] = x
   return d
@@ -75,15 +73,15 @@ function to_dict(x::Array)
     end
     return out
   else
-    d = ObjDict{ASCIIString}()
+    d = ObjDict{String}()
     return map(to_dict, x)
   end
 end
 
 function to_dict(x::Dict)
-  d = ObjDict{ASCIIString}()
+  d = ObjDict{String}()
   d["type"] = string(typeof(x))
-  d["data"] = ObjDict{ASCIIString}()
+  d["data"] = ObjDict{String}()
   for (k, v) in x
     d["data"][string(k)] = to_dict(v)
   end
@@ -91,7 +89,7 @@ function to_dict(x::Dict)
 end
 
 function to_dict(x::Expr)
-  d = ObjDict{ASCIIString}()
+  d = ObjDict{String}()
   d["type"] = string(typeof(x))
   d["data"] = string(x)
   return d
@@ -99,14 +97,14 @@ end
 
 function to_dict(x::Function)
   #warn("Function excluded in Obj2Dict") #drop silently or verbosely?
-  d = ObjDict{ASCIIString}()
+  d = ObjDict{String}()
   d["type"] = string(Function)
   d["data"] = 0 #not supported at the moment
   return d
 end
 
 function to_dict{T}(x::Stack{Deque{T}})
-  d = ObjDict{ASCIIString}()
+  d = ObjDict{String}()
   d["type"] = string(typeof(x))
   d["data"] = convert(Array, x)
   return d

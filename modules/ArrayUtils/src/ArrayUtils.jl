@@ -36,7 +36,7 @@ module ArrayUtils
 
 export elements_equal, duplicate!, consec_unique, consec_unique_inds
 
-using Iterators
+using Base.Iterators
 
 """
 Returns true if all elements in the vector are equal to each other

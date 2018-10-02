@@ -37,21 +37,19 @@ module Vectorizer
 
 export vecnames, vectypes, vectorize
 
-import Compat.ASCIIString
-
 vecnames{T}(obj::T) = fieldnames(obj)
 
 function vectypes{T}(obj::T)
   map(fieldnames(obj)) do field
     ftype = fieldtype(T, field)
-    return isbits(ftype) ? ftype : ASCIIString
+    return isbits(ftype) ? ftype : String
   end
 end
 
 function vectypes(dtype::DataType)
   map(fieldnames(dtype)) do field
     ftype = fieldtype(dtype, field)
-    return isbits(ftype) ? ftype : ASCIIString
+    return isbits(ftype) ? ftype : String
   end
 end
 
