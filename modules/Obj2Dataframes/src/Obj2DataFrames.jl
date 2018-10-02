@@ -46,7 +46,7 @@ using RLESUtils, StringUtils
 import DataFrames: eltypes
 import Base: convert, values 
 
-type ObjDataFrame
+mutable struct ObjDataFrame
     d::DataFrame
 end
 

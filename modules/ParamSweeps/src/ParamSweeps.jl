@@ -46,7 +46,7 @@ import Base: empty!, push!, run, start, next, done, keys, values, length
 
 typealias Iterable Any
 
-type ParamSweep
+mutable struct ParamSweep
   f::Function #function to be called
   argsrc::Vector{Iterable} #vector of iterables, cartesian product will be called on f
 end
@@ -70,7 +70,7 @@ empty!(script::ParamSweep) = empty!(script.argsrc)
 
 ##########
 
-type KWParamSweep
+mutable struct KWParamSweep
   f::Function #function to be called
   argsrc::Dict{Symbol,Iterable} #keyed iterables, cartesian product will be called on f
 end
@@ -87,7 +87,7 @@ end
 push!(script::KWParamSweep, key::Symbol, iterable::Iterable) = script.argsrc[key] = iterable
 empty!(script::KWParamSweep) = empty!(script.argsrc)
 
-type KWIteratorState
+mutable struct KWIteratorState
   it
   state
 end

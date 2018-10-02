@@ -45,7 +45,7 @@ export RandChannel, WrappedRandChannel, resample!, set_channel!
 
 import Base.rand
 
-type RandChannel{T}
+mutable struct RandChannel{T}
     channels::Array{T,2} 
     indices::Vector{Int64}
 end
@@ -77,7 +77,7 @@ function resample!{T}(rc::RandChannel{T})
     rc
 end
 
-type WrappedRandChannel{T} <: AbstractRNG
+mutable struct WrappedRandChannel{T} <: AbstractRNG
     rc::RandChannel{T}
     channel_number::Int64
 end

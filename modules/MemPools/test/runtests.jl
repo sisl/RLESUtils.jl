@@ -36,7 +36,7 @@
 using RLESUtils, MemPools
 using Base.Test
 
-type MyType
+mutable struct MyType
   a::Int64
   b::Bool
 end

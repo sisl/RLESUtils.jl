@@ -38,7 +38,7 @@ export Observer, add_observer, @notify_observer, @notify_observer_default
 
 import Base: empty!, delete!
 
-type Observer
+mutable struct Observer
   callbacks::Dict{String,Vector{Function}}
 end
 Observer() = Observer(Dict{String, Vector{Function}}())

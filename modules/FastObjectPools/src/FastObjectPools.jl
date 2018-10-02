@@ -44,7 +44,7 @@ module FastObjectPools
 
 export FastObjectPool, checkout, check_in_all, available
 
-type FastObjectPool{T}
+mutable struct FastObjectPool{T}
     items::Vector{T}
     index::Int64 #index-1 of next available vector
 

@@ -39,11 +39,11 @@ module ObjectPrimitives
 
 export ObjInt64, ObjFloat64
 
-type ObjInt64
+mutable struct ObjInt64
     x::Int64
 end
 
-type ObjFloat64
+mutable struct ObjFloat64
     x::Float64
 end
 

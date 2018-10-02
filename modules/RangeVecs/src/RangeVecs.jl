@@ -45,7 +45,7 @@ import Base: collect, convert, string, show
 
 typealias RangeVecType Union{Int64,UnitRange{Int64}}
 
-type RangeVec
+mutable struct RangeVec
     ranges::Vector{RangeVecType}
 end
 RangeVec(v::Vector{Int64}) = convert(RangeVec, v) 

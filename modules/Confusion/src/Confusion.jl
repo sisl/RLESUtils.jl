@@ -41,14 +41,14 @@ export recall, accuracy, f1_score
 
 import Base.precision
 
-type ConfusionMat
+mutable struct ConfusionMat
     truepos::Int64
     trueneg::Int64
     falsepos::Int64
     falseneg::Int64
 end
 
-type ConfusionIndices
+mutable struct ConfusionIndices
     truepos::Vector{Int64}
     trueneg::Vector{Int64}
     falsepos::Vector{Int64}

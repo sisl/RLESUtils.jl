@@ -38,7 +38,7 @@ export BitCounter, increment!
 
 import Base: getindex, vec, start, next, done
 
-type BitCounter
+mutable struct BitCounter
   v::BitVector
 end
 

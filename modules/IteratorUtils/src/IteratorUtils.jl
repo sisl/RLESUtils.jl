@@ -40,7 +40,7 @@ import Base: start, next, done, length
 
 typealias Iterable Any
 
-type RoundRobinIter
+mutable struct RoundRobinIter
   subiters::Vector{Iterable}
   states::Vector{Any}
   isdone::Vector{Bool}

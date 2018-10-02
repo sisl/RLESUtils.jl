@@ -41,7 +41,7 @@ using Base.Threads
 
 import Base: get, setindex!, get!, empty!, length, isempty
 
-type MutexLRUCache{K,V}
+mutable struct MutexLRUCache{K,V}
     mutex::Mutex
     lru::LRU{K,V}
 

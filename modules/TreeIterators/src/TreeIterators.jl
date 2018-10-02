@@ -43,7 +43,7 @@ export tree_iter, traverse
 get_children(node) = error("user should override get_children().  Takes
     a node object and returns an iterable of children") 
 
-type TreeIt
+mutable struct TreeIt
     opennodes::Vector{Any}
 end
 

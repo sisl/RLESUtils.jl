@@ -52,7 +52,7 @@ const METAFILE = "_META.csv.gz"
 # required columns, one row for each record
 # :id that matches row number (for joins and reverse lookup)
 
-type DFSet
+mutable struct DFSet
     meta::DataFrame
     records::Vector{DataFrame}
 end
@@ -219,7 +219,7 @@ function DataFrameUtils.convert_to_array_cols!(Ds::DFSet)
 end
 
 ### DFSetLabeled
-type DFSetLabeled{T}
+mutable struct DFSetLabeled{T}
     data::DFSet
     labels::Vector{T}
 end

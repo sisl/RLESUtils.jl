@@ -37,14 +37,14 @@ using RLESUtils, Obj2Dict
 using Base.Test
 import Base.==
 
-type MySubType
+mutable struct MySubType
   p::Int64
   q::String
 end
 MySubType() = MySubType(0,"0")
 ==(x::MySubType, y::MySubType) = x.p == y.p && x.q == y.q
 
-type MyType
+mutable struct MyType
   a::Int64
   b::String
   c::MySubType
@@ -52,7 +52,7 @@ end
 MyType() = MyType(0,"0",MySubType())
 ==(x::MyType, y::MyType) = x.a == y.a && x.b == y.b && x.c == y.c
 
-type MyTypeArray
+mutable struct MyTypeArray
   a::Int64
   b::String
   c::Array{MySubType}
@@ -60,7 +60,7 @@ end
 MyTypeArray() = MyTypeArray(0,"0",[MySubType() for i=1:2])
 ==(x::MyTypeArray, y::MyTypeArray) = x.a == y.a && x.b == y.b && x.c == y.c
 
-type MyEmptyArray
+mutable struct MyEmptyArray
   a::Array{Bool, 2}
 end
 MyEmptyArray() = MyEmptyArray(Array(Bool, 0, 0))

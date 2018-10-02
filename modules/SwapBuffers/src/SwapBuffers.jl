@@ -36,7 +36,7 @@ module SwapBuffers
 
 export SwapBuffer, active, inactive, swap!, set_active!, set_inactive!
 
-type SwapBuffer{T}
+mutable struct SwapBuffer{T}
   bufferA::T
   bufferB::T
   isactiveA::Bool

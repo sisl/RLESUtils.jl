@@ -57,7 +57,7 @@ typealias NameMap Dict{String,String}
 typealias FuncMap Dict{String,Function}
 typealias Vars Dict{String,Any}
 
-type LogDB
+mutable struct LogDB
     var_names::NamesMap
     var_types::TypesMap
     obs_names::NameMap
@@ -65,7 +65,7 @@ type LogDB
 end
 LogDB() = LogDB(NamesMap(), TypesMap(), NameMap(), FuncMap())
 
-type LogSystem
+mutable struct LogSystem
     db::LogDB
     params::Vars
     observer::Observer

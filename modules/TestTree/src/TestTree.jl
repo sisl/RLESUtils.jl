@@ -39,12 +39,12 @@ module TestTree
 
 export MyTree, MyNode, simple_tree1
 
-type MyNode
+mutable struct MyNode
     x::Int64
     children::Vector{MyNode}
 end
 
-type MyTree
+mutable struct MyTree
     root::MyNode
 end
 

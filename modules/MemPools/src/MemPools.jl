@@ -45,7 +45,7 @@ using DataStructures
 
 immutable MaxSizeException <: Exception end
 
-type MemPool{T}
+mutable struct MemPool{T}
   T::Type
   inventory::Stack{T}
   n_allocs::Int64

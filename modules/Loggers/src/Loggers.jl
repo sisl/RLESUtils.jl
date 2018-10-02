@@ -80,7 +80,7 @@ end
 
 name(logfile::LogFile) = logfile.name
 
-type TaggedDFLogger <: Logger
+mutable struct TaggedDFLogger <: Logger
     data::Dict{String,DataFrame}
 end
 TaggedDFLogger() = TaggedDFLogger(Dict{String,DataFrame}())

@@ -36,7 +36,7 @@ module LookupCallbacks
 
 export LookupCallback
 
-type LookupCallback
+mutable struct LookupCallback
   lookups::Vector{String}
   callback::Function
 end

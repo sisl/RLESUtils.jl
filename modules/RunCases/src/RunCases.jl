@@ -46,12 +46,12 @@ import Base: get, start, done, next, length
 using Base.Iterators
 using RLESUtils, ConvertUtils #parent of RunCases
 
-type Case
+mutable struct Case
   data::Dict{String,Any}
 end
 Case() = Case(Dict{String, Any}())
 
-type Cases
+mutable struct Cases
   data::Vector{Case}
 end
 Cases() = Cases(Case[])

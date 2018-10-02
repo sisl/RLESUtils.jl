@@ -47,7 +47,7 @@ using JSON
 
 typealias JDict Dict{String,Any}
 
-type VisCalls
+mutable struct VisCalls
     get_name::Function #name = get_name(node)
     get_children::Function #get_children(node) give iterable of (edgelabel, child)
     get_depth::Nullable{Function}
